@@ -135,12 +135,15 @@ def samplePath( num ):
 		for space in g_spaces:
 			if space.isInside( irand_1, irand_2 ) and space.isInside( irand_3, irand_4 ):
 				# Begin to test obstacles
+				isfeasible = True;
 				for obc in g_obstacles:
 					if obc.isInside( irand_1, irand_2 ) or obc.isInside( irand_3, irand_4 ):
+						isfeasible = False
 						break;
 				# both (irand_1, irand_2) and (irand_3, irand_4) are not in any obstacles
 				# This is a feasible path
-				feasiblePath = feasiblePath + [ ( irand_1, irand_2, irand_3, irand_4 ) ];
+				if isfeasible:
+					feasiblePath = feasiblePath + [ ( irand_1, irand_2, irand_3, irand_4 ) ];
 				break;
 				pass
 			pass
@@ -169,4 +172,4 @@ if __name__ == "__main__":
 
 	pygame.image.save( myImage, "2D.PNG" );
 
-	samplePath( 10000 );
+	samplePath( 200000 );
