@@ -1,9 +1,8 @@
-import pygame
-
 import pygame, sys, os
 from pygame.locals import *
 from random import randrange, uniform
 
+from SVMClassification import *
 
 pygame.init()
 WIDTH = 600
@@ -70,6 +69,7 @@ g_obcColor = [ 240, 0, 0 ]
 g_obcThickness = 1;
 g_spaceColor = [ 0, 150, 0 ]
 g_spaceThickness = 2;
+g_recordFile = "path.txt"
 
 def generateObstacles( rectNum, cirNum ):
 	obs = []
@@ -99,12 +99,17 @@ def drawObstaclesToPic(ImgSurface):
 	for obc in g_obstacles:
 		obc.render( ImgSurface, g_obcColor, g_obcThickness );
 
-def writeVectorsToFile( vectors, filename ):
+def writeVectorsToFile( vectors1, vectors2, filename ):
 	file2write = open( filename, 'w' );
 	formattedData = ""
-	for vector in vectors:
-		formattedData = formattedData + "{0}\t{1}\t{2}\t{3}\n".format(str(vector[0]),str(vector[1]),str(vector[2]),str(vector[3]))
+	for vector in vectors1:
+		formattedData = formattedData + "1 1:{0} 2:{1} 3:{2} 4:{3}\n".format(str(vector[0]),str(vector[1]),str(vector[2]),str(vector[3]))
 		pass
+
+	for vector in vectors2:
+		formattedData = formattedData + "2 1:{0} 2:{1} 3:{2} 4:{3}\n".format(str(vector[0]),str(vector[1]),str(vector[2]),str(vector[3]))
+		pass
+
 	file2write.write( formattedData );
 	file2write.close();
 
@@ -112,6 +117,7 @@ def samplePath( num ):
 	i = 0;
 
 	feasiblePath = []
+	infeasiblePath = []
 
 	print "Begin to sample...."
 
@@ -143,7 +149,9 @@ def samplePath( num ):
 				# both (irand_1, irand_2) and (irand_3, irand_4) are not in any obstacles
 				# This is a feasible path
 				if isfeasible:
-					feasiblePath = feasiblePath + [ ( irand_1, irand_2, irand_3, irand_4 ) ];
+					feasiblePath = feasiblePath + [(irand_1, irand_2, irand_3, irand_4)];
+				else:
+					infeasiblePath = infeasiblePath + [(irand_1, irand_2, irand_3, irand_4)];
 				break;
 				pass
 			pass
@@ -152,10 +160,11 @@ def samplePath( num ):
 
 
 	print "Sampling Finished!"
-	print "Got " + str( len(feasiblePath) ) + " samples";
+	print "Got " + str( len(feasiblePath) ) + " feasible samples";
+	print "and " + str(len(infeasiblePath)) + " infeasible samples\n"
 
-	print "Write to file"
-	writeVectorsToFile( feasiblePath, "feasiblePath.txt" )
+	print "Writing to file...."
+	writeVectorsToFile( feasiblePath, infeasiblePath,  g_recordFile )
 	print "DONE!!!"
 	pass
 
@@ -172,4 +181,22 @@ if __name__ == "__main__":
 
 	pygame.image.save( myImage, "2D.PNG" );
 
-	samplePath( 200000 );
+	samplePath( 30000 );
+
+	print "Start training data...."
+	classifier = SVMClassifier()
+	classifier.train( g_recordFile )
+	print "Training Finished!\n"
+
+	while(1):
+		testData = input( "Please input test data as a 4-element list, ex. (1 2 3 4) without parentheses" );
+		data = testData.split(' ')
+		formated = ( data[0],data[1],data[2],data[3] )
+		label, acc, val = classifier.predict( formated );
+		ifFeasible = "";
+		if label==1:
+			ifFeasible = "Feasible"
+		else:
+			ifFeasible = "Infeasible"
+
+		print( "Result: {0} path, accuracy:{1}\t".format( ifFeasible, acc ) );
