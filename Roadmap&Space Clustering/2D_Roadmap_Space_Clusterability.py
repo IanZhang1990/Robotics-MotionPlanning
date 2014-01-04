@@ -169,4 +169,4 @@ if __name__ == "__main__":
 
 	pygame.image.save( myImage, "2D.PNG" );
 
-	samplePath( 4000 );
+	samplePath( 10000 );
