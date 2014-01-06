@@ -59,16 +59,16 @@ class SVMClassifier:
 		print('Output model: {0}'.format(self.ModelFile))
 		
 		# Read range file and record data range
-		self.readRangeFile();
+		self.readRangeFile(self.RangeFile);
 
 		# Load model into memory
 		self.SVMModel = svm_load_model( self.ModelFile )
 
-	def readRangeFile(self):
+	def readRangeFile(self, filepath):
 		###############################################
 		# Get range information from range file
 		###############################################
-		range_file = open( self.RangeFile, 'r' )
+		range_file = open( filepath, 'r' )
 		range_file.readline()
 		ranges = range_file.readline().split(' ')
 		self.Range = ( int(ranges[0]), int(ranges[1]))

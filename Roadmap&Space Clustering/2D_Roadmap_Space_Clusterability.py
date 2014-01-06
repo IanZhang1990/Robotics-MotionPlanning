@@ -63,7 +63,8 @@ g_obstacles = []
 
 # The space is partitioned into several
 # Each part is not connected with others
-g_spaces = [ Rect( 0, 5, 300, 200 ), Rect( 320, 5, 200, 200 ), Circle( 100, 300, 90 ), Circle( 300, 300, 80 ), Circle( 500, 300, 80 ) ]
+# g_spaces = [ Rect( 0, 5, 300, 200 ), Rect( 320, 5, 200, 200 ), Circle( 100, 300, 90 ), Circle( 300, 300, 80 ), Circle( 500, 300, 80 ) ]
+g_spaces = [ Rect( 0, 5, 300, 300 ), Rect( 320, 5, 200, 300 ) ]
 
 g_obcColor = [ 240, 0, 0 ]
 g_obcThickness = 1;
@@ -188,6 +189,7 @@ if __name__ == "__main__":
 	classifier.train( g_recordFile )
 	print "Training Finished!\n"
 
+	"""
 	while(1):
 		testData = input( "Please input test data as a 4-element list, ex. (1 2 3 4) without parentheses" );
 		data = testData.split(' ')
@@ -200,3 +202,4 @@ if __name__ == "__main__":
 			ifFeasible = "Infeasible"
 
 		print( "Result: {0} path, accuracy:{1}\t".format( ifFeasible, acc ) );
+	"""
