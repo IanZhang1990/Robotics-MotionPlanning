@@ -64,7 +64,7 @@ g_obstacles = []
 # The space is partitioned into several
 # Each part is not connected with others
 # g_spaces = [ Rect( 0, 5, 300, 200 ), Rect( 320, 5, 200, 200 ), Circle( 100, 300, 90 ), Circle( 300, 300, 80 ), Circle( 500, 300, 80 ) ]
-g_spaces = [ Rect( 0, 5, 300, 300 ), Rect( 320, 5, 200, 300 ) ]
+g_spaces = [ Rect( 0, 5, 200, 380 ), Rect( 220, 5, 200, 380 ), Rect( 440, 5, 150, 380 ) ]
 
 g_obcColor = [ 240, 0, 0 ]
 g_obcThickness = 1;
@@ -102,17 +102,24 @@ def drawObstaclesToPic(ImgSurface):
 
 def writeVectorsToFile( vectors1, vectors2, filename ):
 	file2write = open( filename, 'w' );
+	plotFile = open( "Plot"+filename, 'w' )
 	formattedData = ""
+	plotData = ""
 	for vector in vectors1:
 		formattedData = formattedData + "1 1:{0} 2:{1} 3:{2} 4:{3}\n".format(str(vector[0]),str(vector[1]),str(vector[2]),str(vector[3]))
+		plotData = plotData + "{0}\t{1}\t{2}\t{3}\n".format(str(vector[0]),str(vector[1]),str(vector[2]),str(vector[3]))
 		pass
 
 	for vector in vectors2:
 		formattedData = formattedData + "2 1:{0} 2:{1} 3:{2} 4:{3}\n".format(str(vector[0]),str(vector[1]),str(vector[2]),str(vector[3]))
+		#plotData = plotData + "{0}\t{1}\t{2}\t{3}\n".format(str(vector[0]),str(vector[1]),str(vector[2]),str(vector[3]))
 		pass
 
 	file2write.write( formattedData );
 	file2write.close();
+
+	plotFile.write( plotData );
+	plotFile.close();
 
 def samplePath( num ):
 	i = 0;
@@ -139,10 +146,11 @@ def samplePath( num ):
 		#   ---------------------
 		# Each part is not connected with others.
 		# These parts are stored in list spaces[] 
+		isfeasible = False;
 		for space in g_spaces:
 			if space.isInside( irand_1, irand_2 ) and space.isInside( irand_3, irand_4 ):
-				# Begin to test obstacles
 				isfeasible = True;
+				# Begin to test obstacles
 				for obc in g_obstacles:
 					if obc.isInside( irand_1, irand_2 ) or obc.isInside( irand_3, irand_4 ):
 						isfeasible = False
@@ -151,11 +159,13 @@ def samplePath( num ):
 				# This is a feasible path
 				if isfeasible:
 					feasiblePath = feasiblePath + [(irand_1, irand_2, irand_3, irand_4)];
+					break;
 				else:
-					infeasiblePath = infeasiblePath + [(irand_1, irand_2, irand_3, irand_4)];
-				break;
+					break;
 				pass
 			pass
+		if not isfeasible:
+			infeasiblePath = infeasiblePath + [ (irand_1, irand_2, irand_3, irand_4) ];
 
 		i = i + 1;
 
@@ -175,14 +185,14 @@ if __name__ == "__main__":
 	myImage = pygame.display.set_mode( (WIDTH, HEIGHT) )
 	myImage.fill( (255, 255, 255) );
 
-	g_obstacles = generateObstacles( 20, 10 );
+	#g_obstacles = generateObstacles( 20, 10 );
 
 	drawObstaclesToPic( myImage );
 	drawSpacePartitionToPic( myImage );
 
 	pygame.image.save( myImage, "2D.PNG" );
 
-	samplePath( 30000 );
+	samplePath( 3000 );
 
 	print "Start training data...."
 	classifier = SVMClassifier()
@@ -203,3 +213,8 @@ if __name__ == "__main__":
 
 		print( "Result: {0} path, accuracy:{1}\t".format( ifFeasible, acc ) );
 	"""
+	testData = [[379,355,334,384],[17,6,155,279],[227,351,129,341]];
+	
+	for i in range(0,3):
+		label, acc, val = classifier.predict( testData[i] );
+		print( "Result: Label: {0}, accuracy:{1}, Val:{2}\t".format( label, acc,val ) );

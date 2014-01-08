@@ -82,16 +82,7 @@ class SVMClassifier:
 		ranges = range_2.split(' ')
 		self.MinY1 = int(ranges[1])
 		self.MaxY1 = int(ranges[2])
-		#----------------------------------------------
-		range_3 = range_file.readline()
-		ranges = range_3g.split(' ')
-		self.MinX2 = int(ranges[1])
-		self.MaxX2 = int(ranges[2])
-		range_4 = range_file.readline()
-		ranges = range_4.split(' ')
-		self.MinY2 = int(ranges[1])
-		self.MaxY2 = int(ranges[2])
-		range_file.close();
+
 	
 	def loadSVMModel( self, filepath ):
 		# Load model into memory
@@ -103,18 +94,16 @@ class SVMClassifier:
 			print("No SVM Model loaded")
 			return
 
-		if( len( one_data ) != 4 ):
+		if( len( one_data ) != 2 ):
 			print( "Illegal data" )
 			return;
 
 		val1 = float(self.Range[0]) + float( self.Range[1] - self.Range[0] ) * float( one_data[0] - self.MinX1 ) / ( self.MaxX1 - self.MinX1 )
 		val2 = float(self.Range[0]) + float( self.Range[1] - self.Range[0] ) * float( one_data[1] - self.MinY1 ) / ( self.MaxY1 - self.MinY1 ) 
-		val3 = float(self.Range[0]) + float( self.Range[1] - self.Range[0] ) * float( one_data[2] - self.MinX2 ) / ( self.MaxX2 - self.MinX2 )
-		val4 = float(self.Range[0]) + float( self.Range[1] - self.Range[0] ) * float( one_data[3] - self.MinY2 ) / ( self.MaxY2 - self.MinY2 ) 
 
 		#x, maxid = gen_svm_nodearray( [val1,val2,val3,val4] )
 		#x = [svm_node(1, one_data[0]), svm_node(2, one_data[1])]
 		#y = libsvm.svm_predict( self.SVMModel, x )
-		xi = [[val1,val2,val3,val4]]
+		xi = [[val1,val2]]
 		label, acc, val = svm_predict( [0], xi, self.SVMModel )
-		return label, acc, val
+		return label[0]

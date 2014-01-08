@@ -38,11 +38,5 @@ if __name__ == "__main__":
 
 	for data in g_testDataList:
 		label, acc, val = classifier.predict( data )
-		ifFeasible = "";
-		if label==1:
-			ifFeasible = "Feasible"
-		else:
-			ifFeasible = "Infeasible"
-
 		print( "Testing: {0}".format( data ) );
-		print( "Result: {0} path, accuracy:{1}\t value: {2}".format( ifFeasible, acc, val ) );
+		print( "Result: Label: {0}, accuracy:{1}\t value: {2}".format( label, acc, val ) );
