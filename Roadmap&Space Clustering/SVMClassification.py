@@ -84,7 +84,7 @@ class SVMClassifier:
 		self.MaxY1 = int(ranges[2])
 		#----------------------------------------------
 		range_3 = range_file.readline()
-		ranges = range_3g.split(' ')
+		ranges = range_3.split(' ')
 		self.MinX2 = int(ranges[1])
 		self.MaxX2 = int(ranges[2])
 		range_4 = range_file.readline()

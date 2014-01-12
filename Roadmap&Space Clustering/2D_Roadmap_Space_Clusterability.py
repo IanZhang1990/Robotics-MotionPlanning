@@ -59,7 +59,7 @@ class Circle(Obstacle):
 
 
 # segment obstacles
-g_obstacles = []
+g_obstacles = []#[Rect( 40,40, 100, 150 ), Circle( 300, 200, 50 ), Circle( 520, 200, 50 )]
 
 # The space is partitioned into several
 # Each part is not connected with others
@@ -67,23 +67,23 @@ g_obstacles = []
 g_spaces = [ Rect( 0, 5, 200, 380 ), Rect( 220, 5, 200, 380 ), Rect( 440, 5, 150, 380 ) ]
 
 g_obcColor = [ 240, 0, 0 ]
-g_obcThickness = 1;
+g_obcThickness = 2;
 g_spaceColor = [ 0, 150, 0 ]
-g_spaceThickness = 2;
+g_spaceThickness = 3;
 g_recordFile = "path.txt"
 
 def generateObstacles( rectNum, cirNum ):
 	obs = []
 	for i in range( 0, rectNum ):
-		w = randrange( 10, 70 );
-		h = randrange( 10, 60 );
+		w = randrange( 50, 100 );
+		h = randrange( 50, 100 );
 		x = randrange( 0, WIDTH-w );
 		y = randrange( 0, HEIGHT-h );
 		obs = obs + [Rect(x,y,w,h)];
 		pass;
 
 	for i in range( 0, cirNum ):
-		r = randrange( 10, 50 );
+		r = randrange( 30, 60 );
 		x = randrange( r, WIDTH-r );
 		y = randrange( r, HEIGHT-r );
 		obs = obs + [Circle(x, y, r)];
@@ -121,7 +121,83 @@ def writeVectorsToFile( vectors1, vectors2, filename ):
 	plotFile.write( plotData );
 	plotFile.close();
 
-def samplePath( num ):
+def isPathFeasible( x1, y1, x2,y2 ):
+	isfeasible = False;
+	for space in g_spaces:
+		if space.isInside( x1, y1 ) and space.isInside( x2, y2 ):
+			isfeasible = True;
+			# Begin to test obstacles
+			for obc in g_obstacles:
+				if obc.isInside( x1, y1 ) or obc.isInside( x2, y2 ):
+					isfeasible = False
+					break;
+			# both (x1, y1) and (x2, y2) are not in any obstacles
+			# This is a feasible path
+			if isfeasible:
+				break;
+			else:
+				break;
+			pass
+		elif space.isInside( x1, y1 ) and not space.isInside( x2, y2 ):
+			ifFeasible = False;
+			break;
+		else:
+			continue;
+		pass
+	return isfeasible;
+
+def samplePath(num):
+	i = 0;
+
+	feasiblePath = []
+	infeasiblePath = []
+	pathImage = pygame.display.set_mode( (WIDTH, HEIGHT) )
+	pathImage.fill( (255, 255, 255) );
+
+
+	print "Begin to sample...."
+
+	while( i < num ):
+		irand_1 = randrange( 0, WIDTH );
+		irand_2 = randrange( 0, HEIGHT );
+		irand_3 = randrange( 0, WIDTH );
+		irand_4 = randrange( 0, HEIGHT );
+
+		## Assuming the 2D pace is partitioned into several parts
+		#   ---------------------
+		#   |		  |			|
+		#   |		  |			|
+		#   |		  |			|
+		#   |--------------------
+		#   |		 			|
+		#   |					|
+		#   ---------------------
+		# Each part is not connected with others.
+		# These parts are stored in list spaces[] 
+		if isPathFeasible( irand_1, irand_2, irand_3,irand_4 ):
+			feasiblePath = feasiblePath + [(irand_1, irand_2, irand_3, irand_4)]
+		else:
+			infeasiblePath = infeasiblePath + [ (irand_1, irand_2, irand_3, irand_4) ];
+		i = i + 1;
+
+
+	print "Sampling Finished!"
+	print "Got " + str( len(feasiblePath) ) + " feasible samples";
+	print "and " + str(len(infeasiblePath)) + " infeasible samples\n"
+
+	print "Draw to image...."
+	drawSpacePartitionToPic(pathImage)
+	drawObstaclesToPic(pathImage)
+	pygame.display.flip()
+	#for path in feasiblePath:
+	#	pygame.draw.line( pathImage, (0, 255, 0), (path[0],path[1]), (path[2],path[3]) );
+	for path in infeasiblePath:
+		pygame.draw.line( pathImage, (255, 0, 0), (path[0],path[1]), (path[2],path[3]) );
+	pygame.image.save( pathImage, "pathImage.png" );
+	print "DONE!!!"
+	pass
+
+def samplePathAndDoSVM( num ):
 	i = 0;
 
 	feasiblePath = []
@@ -146,6 +222,13 @@ def samplePath( num ):
 		#   ---------------------
 		# Each part is not connected with others.
 		# These parts are stored in list spaces[] 
+		if isPathFeasible( irand_1, irand_2, irand_3,irand_4 ):
+			feasiblePath = feasiblePath + [(irand_1, irand_2, irand_3, irand_4)]
+		else:
+			infeasiblePath = infeasiblePath + [ (irand_1, irand_2, irand_3, irand_4) ];
+		
+		i = i + 1;
+		"""
 		isfeasible = False;
 		for space in g_spaces:
 			if space.isInside( irand_1, irand_2 ) and space.isInside( irand_3, irand_4 ):
@@ -163,12 +246,15 @@ def samplePath( num ):
 				else:
 					break;
 				pass
+			elif space.isInside( irand_1, irand_2 ) and not space.isInside( irand_3, irand_4 ):
+				ifFeasible = False;
+				break; 
+			else:
+				continue;
 			pass
 		if not isfeasible:
 			infeasiblePath = infeasiblePath + [ (irand_1, irand_2, irand_3, irand_4) ];
-
-		i = i + 1;
-
+		"""
 
 	print "Sampling Finished!"
 	print "Got " + str( len(feasiblePath) ) + " feasible samples";
@@ -179,42 +265,62 @@ def samplePath( num ):
 	print "DONE!!!"
 	pass
 
-
-if __name__ == "__main__":
-
+def main():
 	myImage = pygame.display.set_mode( (WIDTH, HEIGHT) )
 	myImage.fill( (255, 255, 255) );
 
-	#g_obstacles = generateObstacles( 20, 10 );
+	global g_obstacles;
+	g_obstacles = generateObstacles( 4, 5 );
 
 	drawObstaclesToPic( myImage );
 	drawSpacePartitionToPic( myImage );
 
 	pygame.image.save( myImage, "2D.PNG" );
 
-	samplePath( 3000 );
+	samplePath( 400 )
+	return;
+
+	samplePathAndDoSVM( 3000 );
 
 	print "Start training data...."
 	classifier = SVMClassifier()
 	classifier.train( g_recordFile )
 	print "Training Finished!\n"
 
-	"""
-	while(1):
-		testData = input( "Please input test data as a 4-element list, ex. (1 2 3 4) without parentheses" );
-		data = testData.split(' ')
-		formated = ( data[0],data[1],data[2],data[3] )
-		label, acc, val = classifier.predict( formated );
-		ifFeasible = "";
-		if label==1:
-			ifFeasible = "Feasible"
-		else:
-			ifFeasible = "Infeasible"
 
-		print( "Result: {0} path, accuracy:{1}\t".format( ifFeasible, acc ) );
-	"""
-	testData = [[379,355,334,384],[17,6,155,279],[227,351,129,341]];
+	pathImage = pygame.display.set_mode( (WIDTH, HEIGHT) )
+	pathImage.fill( (255, 255, 255) );
+	drawSpacePartitionToPic(pathImage)
+	drawObstaclesToPic(pathImage)
+
+	for i in range( 0, 200 ):
+		irand_1 = randrange( 0, WIDTH );
+		irand_2 = randrange( 0, HEIGHT );
+		irand_3 = randrange( 0, WIDTH );
+		irand_4 = randrange( 0, HEIGHT );
+		testData = ( irand_1, irand_2, irand_3, irand_4 )
+		label, acc, val = classifier.predict( testData );
+		ifFeasible = "";
+		checkResult = isPathFeasible(irand_1, irand_2, irand_3, irand_4);
+		if (label[0]==1.0 and checkResult==True):
+			pygame.draw.line( pathImage, (0, 0, 255), (irand_1,irand_2), (irand_3,irand_4) );
+		elif(label[0]==2.0 and checkResult==False):
+			pygame.draw.line( pathImage, (0, 255, 0), (irand_1,irand_2), (irand_3,irand_4) );
+		else:
+			pygame.draw.line( pathImage, (255, 0, 0), (irand_1,irand_2), (irand_3,irand_4) );
+
+		print( "Result: {0} path. \t{1} to {2}".format( label, (irand_1, irand_2), (irand_3, irand_4) ) );
+
+	pygame.image.save( pathImage, "pathImage.png" )
+
 	
+"""
+	testData = [[379,355,334,384],[17,6,155,279],[227,351,129,341]];
 	for i in range(0,3):
 		label, acc, val = classifier.predict( testData[i] );
 		print( "Result: Label: {0}, accuracy:{1}, Val:{2}\t".format( label, acc,val ) );
+"""
+
+if __name__ == "__main__":
+
+	main()
