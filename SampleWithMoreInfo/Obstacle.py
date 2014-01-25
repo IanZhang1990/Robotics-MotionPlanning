@@ -1,6 +1,11 @@
 
+from random import randrange, uniform
+import pygame
+
+
 class Obstacle:
 	def __init__(self):
+		self.Name = "obstacle"
 		pass
 
 	def render(self, surface, color, thickness):
@@ -16,6 +21,7 @@ class Rect(Obstacle):
 		self.Y = y
 		self.Width = width
 		self.Height = height
+		self.Name = "Rectangle"
 		pass;
 
 	def render( self, surface, color, thickness ):
@@ -34,6 +40,7 @@ class Circle(Obstacle):
 		self.X = x
 		self.Y = y
 		self.Radius = radius
+		self.Name = "Circle"
 		pass
 
 	def render( self, surface, color, thickness ):
@@ -53,18 +60,18 @@ class ObstaclesManager:
 		self.mScreenWidth = scrWidth;
 		self.mScreenHeight = scrHeight;
 
-	def generateObstacles( rectNum, cirNum, minWidth, maxWidth, minHeight, maxHeight ):
+	def generateObstacles( self, rectNum, cirNum, minWidth, maxWidth, minHeight, maxHeight ):
 		obs = []
 		for i in range( 0, rectNum ):
-			w = randrange( 50, 100 );
-			h = randrange( 50, 100 );
+			w = randrange( 50, 150 );
+			h = randrange( 50, 150 );
 			x = randrange( minWidth, maxWidth-w );
 			y = randrange( minHeight, maxHeight-h );
 			obs = obs + [Rect(x,y,w,h)];
 			pass;
 
 		for i in range( 0, cirNum ):
-			r = randrange( 30, 60 );
+			r = randrange( 30, 100 );
 			x = randrange( r, maxWidth-r );
 			y = randrange( r, maxHeight-r );
 			obs = obs + [Circle(x, y, r)];
@@ -74,13 +81,25 @@ class ObstaclesManager:
 
 		return obs; 
 
+	def getObstacles(self):
+		return self.mObstacles;
+
+	def addObstacle(self, obst):
+		self.mObstacles += [obst];
+
 	def isConfigInObstacle(self, sample):
 		space = Rect( 0,0, self.mScreenWidth, self.mScreenHeight );
 
-		if !space.isInside( sample[0], sample[1] ):
+		if not space.isInside( sample[0], sample[1] ):
 			return True;
 
 		for obst in self.mObstacles:
 			if( obst.isInside(sample[0], sample[1]) ):
 				return True;
 		return False;
+
+	def isOutOfWorld(self, sample):
+		space = Rect( 0,0, self.mScreenWidth, self.mScreenHeight );
+
+		if not space.isInside( sample[0], sample[1] ):
+			return True;

@@ -80,7 +80,7 @@ class Graph:
 
 		result = []
 		for i in range( 0,k ):
-			if( !pq.isEmpty() ):
+			if( not pq.isEmpty() ):
 				result += [pq.pop()];
 			else:
 				break;
@@ -92,6 +92,8 @@ class Graph:
 class PRM:
 	"""Probability roadmap in a 2D world"""
 	def __init__(self):
+		self.mVertices = []
 		pass;
 
 	def buildPRM(self, Xinit, obstMgr):
+		pass;
