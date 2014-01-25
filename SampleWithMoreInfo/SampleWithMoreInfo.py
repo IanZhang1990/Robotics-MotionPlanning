@@ -59,7 +59,9 @@ def main():
 	#ray.drawRay(myImage);
 	#pygame.draw.circle( myImage, ( 0, 250, 0 ), (247, 260), int(dist), 1 );
 
-	sampleMgr.sampleWithMoreInfo( 20 );
+	#sampleMgr.timeSafeSampleWithDistance( 20, 3 );
+	#sampleMgr.sampleWithMoreInfo(20);
+	sampleMgr.sampleWithDistInfo_multiThread( 20 );
 	sampleMgr.writeSamplesToFile( "distSample.txt" );
 	sampleMgr.drawDistSampleToPic( myImage );
 

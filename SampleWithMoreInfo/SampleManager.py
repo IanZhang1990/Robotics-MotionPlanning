@@ -1,13 +1,17 @@
 
 from random import randrange, uniform
 
-import sys, os, datetime
+import sys, os, datetime, thread
 import math
 from Obstacle import *
 from Ray import *
 from World import *
 import pygame
 
+import signal
+
+def signal_handler(signum, frame):
+	raise Exception( "Timed Out!!!" );
 
 class DistSample:
 	"""Sample with distance to obstacles"""
@@ -25,6 +29,7 @@ class DistSample:
 		else:
 			return False;		
 
+g_failTimes = 0;
 
 class SampleManager:
 	def __init__( self, world ):
@@ -33,6 +38,7 @@ class SampleManager:
 		self.mDistSamples = [];
 		self.mFreeSamples = [];
 		self.mObstSamples = [];
+		
 
 	def simpleSample(self, num):
 		"""randomly sample the world. save all samples"""
@@ -74,10 +80,58 @@ class SampleManager:
 		self.mObstSamples = obstSamp;
 		return obstSamp;
 
-	def sampleWithMoreInfo(self, num):
+	def timeSafeSampleWithDistance( self, num, timeout ):
 		"""Randomly sample configurations in the c-space
 		@param num: termination conditon. num times failed to find a new point, then terminate.
 		@param timeout: maximun sampling time
+		"""
+		signal.signal( signal.SIGALRM, signal_handler );
+		signal.alarm( timeout );
+		try:
+			self.sampleWithMoreInfo( num );
+		except Exception, msg:
+			print msg;
+			print "Get {0} samples".format( len(self.mDistSamples) );
+
+	def sampleWithDistInfo_multiThread(self, num):
+		"""Randomly sample configurations in the c-space with multi-threading
+		@param num: termination conditon. num times failed to find a new point, then terminate.
+		"""
+		global g_failTimes;
+		try:
+			for i in range(0,10):
+				thread.start_new( self.__mltithreadSample__, ("Thread-"+str(i), num) )
+			g_failTimes = 0;
+		except Exception, msg:
+			print "Failed to start a thread, MSG:\n\t" + msg;
+			g_failTimes = 0;
+
+	def __mltithreadSample__(self, threadname, num):
+		print 'start thread '+ threadname + '\n';
+		global g_failTimes;
+		while( self.g_failTimes < num ):
+			rnd1 = randrange(0,self.mWorld.mWidth);
+			rnd2 = randrange(0,self.mWorld.mHeight);
+
+			newSamp = True;
+			for sample in self.mDistSamples:
+				if sample.withInArea( rnd1, rnd2 ):
+					newSamp = False;
+					g_failTimes += 1
+					break;
+
+			if newSamp:
+				# randomly shoot rays to get the nearest distance to obstacles
+				rayShooter = RayShooter( rnd1, rnd2, self.mObstMgr );
+				dist = rayShooter.randShoot(72);
+				if math.fabs(dist) >= 1.0:
+					self.mDistSamples += [ DistSample(rnd1, rnd2, dist) ];
+					g_failTimes=0;
+
+
+	def sampleWithMoreInfo(self, num):
+		"""Randomly sample configurations in the c-space
+		@param num: termination conditon. num times failed to find a new point, then terminate.
 		"""
 		failTimes = 0;
 		self.mDistSamples = []
