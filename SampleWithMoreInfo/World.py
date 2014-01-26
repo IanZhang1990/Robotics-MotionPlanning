@@ -6,7 +6,7 @@ import pygame;
 
 class World:
 
-	g_obcColor = [ 100, 100, 100 ]
+	g_obcColor = [ 150, 150, 150 ]
 	g_obcThickness = 0;
 	g_spaceColor = [ 0, 150, 0 ]
 	g_spaceThickness = 3;

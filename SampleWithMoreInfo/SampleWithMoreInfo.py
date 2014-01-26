@@ -61,7 +61,7 @@ def main():
 
 	#sampleMgr.timeSafeSampleWithDistance( 20, 3 );
 	#sampleMgr.sampleWithMoreInfo(20);
-	sampleMgr.sampleWithDistInfo_multiThread( 20 );
+	sampleMgr.sampleWithDistInfo_multiThread( 50 );
 	sampleMgr.writeSamplesToFile( "distSample.txt" );
 	sampleMgr.drawDistSampleToPic( myImage );
 

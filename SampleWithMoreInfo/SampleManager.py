@@ -1,13 +1,14 @@
 
 from random import randrange, uniform
 
-import sys, os, datetime, thread
+import sys, os, datetime
 import math
 from Obstacle import *
 from Ray import *
 from World import *
 import pygame
 
+from multiprocessing  import Process, Manager, Value, Array
 import signal
 
 def signal_handler(signum, frame):
@@ -29,15 +30,14 @@ class DistSample:
 		else:
 			return False;		
 
-g_failTimes = 0;
-
 class SampleManager:
 	def __init__( self, world ):
 		self.mWorld = world;
 		self.mObstMgr = world.mObstMgr;
-		self.mDistSamples = [];
+		self.mDistSamples = Manager().list();
 		self.mFreeSamples = [];
 		self.mObstSamples = [];
+		self.g_failTimes = Value( 'i', 0 );
 		
 
 	def simpleSample(self, num):
@@ -97,19 +97,27 @@ class SampleManager:
 		"""Randomly sample configurations in the c-space with multi-threading
 		@param num: termination conditon. num times failed to find a new point, then terminate.
 		"""
-		global g_failTimes;
 		try:
-			for i in range(0,10):
-				thread.start_new( self.__mltithreadSample__, ("Thread-"+str(i), num) )
-			g_failTimes = 0;
+			self.g_failTimes.value = 0;
+			threads = [];
+			threadsCount = 4;
+			for i in range(0,threadsCount):
+				newThread = Process( target=self.__mltithreadSample__, args=[ i,num ] );
+				threads += [newThread];
+			for i in range( 0,threadsCount ):
+				threads[i].start();
+			for i in range( 0,threadsCount ):
+				threads[i].join();
+
+			print "Get {0} samples".format( len(self.mDistSamples) );
+
 		except Exception, msg:
 			print "Failed to start a thread, MSG:\n\t" + msg;
-			g_failTimes = 0;
+			self.g_failTimes.value = 0;
 
 	def __mltithreadSample__(self, threadname, num):
-		print 'start thread '+ threadname + '\n';
-		global g_failTimes;
-		while( self.g_failTimes < num ):
+		while( self.g_failTimes.value < num ):
+			#print "Thread:\t{0} failedTimes:\t{1}\n".format( threadname, self.g_failTimes );
 			rnd1 = randrange(0,self.mWorld.mWidth);
 			rnd2 = randrange(0,self.mWorld.mHeight);
 
@@ -117,7 +125,7 @@ class SampleManager:
 			for sample in self.mDistSamples:
 				if sample.withInArea( rnd1, rnd2 ):
 					newSamp = False;
-					g_failTimes += 1
+					self.g_failTimes.value += 1
 					break;
 
 			if newSamp:
@@ -125,8 +133,10 @@ class SampleManager:
 				rayShooter = RayShooter( rnd1, rnd2, self.mObstMgr );
 				dist = rayShooter.randShoot(72);
 				if math.fabs(dist) >= 1.0:
-					self.mDistSamples += [ DistSample(rnd1, rnd2, dist) ];
-					g_failTimes=0;
+					(self.mDistSamples) += [ DistSample(rnd1, rnd2, dist) ];
+					self.g_failTimes.value=0;
+
+		#print "Get {0} samples in thread {1}".format( len(self.mDistSamples), threadname );
 
 
 	def sampleWithMoreInfo(self, num):

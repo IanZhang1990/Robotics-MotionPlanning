@@ -1,24 +1,24 @@
-import threading
+import time
+from multiprocessing import Process, Manager, Value
 
-class myTest:
-	def __init__(self):
-		self.count = 0;
-		pass
+def foo(data, name=''):
+    print type(data), data.value, name
+    data.value += 1
 
-	def foo(self):
-		try:
-			print "staring multithreading"
-			for i in range( 1, 5):
-				threading.Thread( target=self.mult, args = ([i]) ).start();
-		except Exception, msg:
-			print msg;
+if __name__ == "__main__":
+    manager = Manager()
+    x = manager.Value('i', 0)
+    y = Value('i', 0)
 
-	def mult(self, i):
-		self.count += 1;
-		print self.count;
-		print "value: " + str(i) + '\n'
+    for i in range(5):
+        Process(target=foo, args=(x, 'x')).start()
+        Process(target=foo, args=(y, 'y')).start()
 
+    print 'Before waiting: '
+    print 'x = {0}'.format(x.value)
+    print 'y = {0}'.format(y.value)
 
-
-test = myTest();
-test.foo();
+    time.sleep(5.0)
+    print 'After waiting: '
+    print 'x = {0}'.format(x.value)
+    print 'y = {0}'.format(y.value)
