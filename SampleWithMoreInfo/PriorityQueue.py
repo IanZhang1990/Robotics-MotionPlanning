@@ -12,13 +12,13 @@ class PriorityQueue:
 	def push(self, task, priority=0):
 	        'Add a new task or update the priority of an existing task'
 	        if task in self.mEntryFinder:
-	            remove_task(task)
+	            self.remove_task(task)
 	        count = next(self.mCounter)
 	        entry = [priority, count, task]
 	        self.mEntryFinder[task] = entry
 	        heappush(self.mPriQue, entry)
 
-	def remove(self, task):
+	def remove_task(self, task):
 	        'Mark an existing task as self.mREMOVED.  Raise KeyError if not found.'
 	        entry = self.mEntryFinder.pop(task)
 	        entry[-1] = self.mREMOVED
@@ -33,7 +33,7 @@ class PriorityQueue:
 	        raise KeyError('pop from an empty priority queue')
 
 	def isEmpty(self):
-		return lem(self.mPriQue) == 0;
+		return len(self.mPriQue) == 0;
 
 """
 pq = PriorityQueue()

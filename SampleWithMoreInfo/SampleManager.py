@@ -64,6 +64,7 @@ class SampleManager:
 				freeSamp += [(irand_1, irang_2)];
 				freeSampCount += 1;
 		self.mFreeSamples = freeSamp;
+		print "Finished sampling free space, got {0} samples!".format( len(freeSamp) );
 		return freeSamp;
 
 	def sampleObst(self, num):
@@ -91,7 +92,7 @@ class SampleManager:
 			self.sampleWithMoreInfo( num );
 		except Exception, msg:
 			print msg;
-			print "Get {0} samples".format( len(self.mDistSamples) );
+			print "Get {0} samples with distances\n".format( len(self.mDistSamples) );
 
 	def sampleWithDistInfo_multiThread(self, num):
 		"""Randomly sample configurations in the c-space with multi-threading
@@ -102,7 +103,7 @@ class SampleManager:
 			threads = [];
 			threadsCount = 4;
 			for i in range(0,threadsCount):
-				newThread = Process( target=self.__mltithreadSample__, args=[ i,num ] );
+				newThread = Process( target=self.__mltithreadDistSample__, args=[ i,num ] );
 				threads += [newThread];
 			for i in range( 0,threadsCount ):
 				threads[i].start();
@@ -115,7 +116,7 @@ class SampleManager:
 			print "Failed to start a thread, MSG:\n\t" + msg;
 			self.g_failTimes.value = 0;
 
-	def __mltithreadSample__(self, threadname, num):
+	def __mltithreadDistSample__(self, threadname, num):
 		while( self.g_failTimes.value < num ):
 			#print "Thread:\t{0} failedTimes:\t{1}\n".format( threadname, self.g_failTimes );
 			rnd1 = randrange(0,self.mWorld.mWidth);
@@ -133,7 +134,15 @@ class SampleManager:
 				rayShooter = RayShooter( rnd1, rnd2, self.mObstMgr );
 				dist = rayShooter.randShoot(72);
 				if math.fabs(dist) >= 1.0:
-					(self.mDistSamples) += [ DistSample(rnd1, rnd2, dist) ];
+					newDistSamp = DistSample(rnd1, rnd2, dist)
+					for samp in self.mDistSamples:
+						# Check if old sample is with the area of the new sample;
+						if newDistSamp.withInArea( samp.mSample[0], samp.mSample[1] ):
+							try:
+								self.mDistSamples.remove( samp );
+							except:
+								continue;
+					(self.mDistSamples) += [ newDistSamp ];
 					self.g_failTimes.value=0;
 
 		#print "Get {0} samples in thread {1}".format( len(self.mDistSamples), threadname );
@@ -166,9 +175,11 @@ class SampleManager:
 
 		print "Get {0} samples".format( len(self.mDistSamples) );
 
-	def drawDistSampleToPic(self, ImgSurface):
-		freeColor = ( 0, 250, 0 );
-		obstColor = ( 200, 0, 0 );
+
+	def renderDistSample(self, ImgSurface):
+		"""Render distance sample to image"""
+		freeColor = ( 0, 0, 250 );
+		obstColor = ( 200, 0, 100 );
 		for samp in self.mDistSamples:
 			if samp.mRadius > 0: # Free sample
 				pygame.draw.circle( ImgSurface, freeColor, (samp.mSample[0], samp.mSample[1]), int(math.fabs(samp.mRadius)), 1 );

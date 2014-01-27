@@ -1,10 +1,10 @@
-import pygame, sys, os
+import pygame, sys, os, datetime
 from pygame.locals import *
 from Obstacle import *
 
 from SampleManager import *
 from PRM import *
-
+from GraphSpanner import *
 
 pygame.init()
 WIDTH = 1366
@@ -44,28 +44,55 @@ def main():
 
 	global sampleWorld, sampleMgr;
 
-	myImage = pygame.display.set_mode( (WIDTH, HEIGHT) )
-	myImage.fill( (255, 255, 255) );
+	initSampleImage = pygame.display.set_mode( (WIDTH, HEIGHT) )
+	initSampleImage.fill( (255, 255, 255) );
+
 
 	#sampleWorld.buildWorld();
 	#sampleWorld.saveWorld("world.txt");
 	sampleWorld.loadWorld("world.txt");
-	sampleWorld.drawSpacesToPic( myImage );
-	sampleWorld.drawObstaclesToPic( myImage );
+	sampleWorld.renderCSpace( initSampleImage );
+	sampleWorld.renderObstacles( initSampleImage );
+
+	#print sampleWorld.mObstMgr.isPathFree( (1188, 274), (1188, 462) );
+	#return;
 
 	#rayShooter = RayShooter( 247, 260, sampleWorld.mObstMgr );
 	#dist, ray = rayShooter.randShoot(36);
 	#print "Smallest {0}".format(dist);
-	#ray.drawRay(myImage);
-	#pygame.draw.circle( myImage, ( 0, 250, 0 ), (247, 260), int(dist), 1 );
+	#ray.drawRay(initSampleImage);
+	#pygame.draw.circle( initSampleImage, ( 0, 250, 0 ), (247, 260), int(dist), 1 );
 
+	print "\nBegin to build PRM* at :{0}".format(datetime.datetime.now());
+	prm = PRM( sampleWorld.mObstMgr, sampleMgr );
+	prm.buildPRM_star();
+	prm.renderRoadMap( initSampleImage);
+
+
+	print "\nBegin to sample spheres at :{0}".format(datetime.datetime.now());
 	#sampleMgr.timeSafeSampleWithDistance( 20, 3 );
 	#sampleMgr.sampleWithMoreInfo(20);
-	sampleMgr.sampleWithDistInfo_multiThread( 50 );
+	sampleMgr.sampleWithDistInfo_multiThread( 100 );
 	sampleMgr.writeSamplesToFile( "distSample.txt" );
-	sampleMgr.drawDistSampleToPic( myImage );
+	sampleMgr.renderDistSample( initSampleImage );
+	pygame.image.save( initSampleImage, "SamplingImage.PNG" );
 
-	pygame.image.save( myImage, "World.PNG" );
+
+	afterSpanningImg = pygame.display.set_mode( (WIDTH, HEIGHT) );
+	afterSpanningImg.fill( (255, 255, 255) );
+
+	sampleWorld.renderObstacles( afterSpanningImg );
+	begin = datetime.datetime.now()
+	spanner = GraphSpanner(prm.mGraph, sampleMgr.mDistSamples);
+	print "Begin to span: {0}".format( begin );
+	graph = spanner.span();
+	end = datetime.datetime.now();
+	timeCost = end-begin;
+	print "Finished spanning: {0}".format(end);
+	print "Time cost: {0}".format(timeCost);
+	graph.render( afterSpanningImg, (0,250,0) );
+	sampleMgr.renderDistSample( afterSpanningImg );
+	pygame.image.save( afterSpanningImg, "AfterSpanning.PNG" );
 
 	return;
 

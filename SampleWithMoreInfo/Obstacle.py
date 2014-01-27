@@ -1,6 +1,6 @@
 
 from random import randrange, uniform
-import pygame
+import pygame, math
 
 
 class Obstacle:
@@ -86,6 +86,36 @@ class ObstaclesManager:
 
 	def addObstacle(self, obst):
 		self.mObstacles += [obst];
+
+	def isPathFree( self, start, end ):
+		"""Check if the path between start --> end is free.
+		Note: This is for 2D only!
+		@param start:	start position of the path
+		@param end:		end position of the path
+		"""
+		if len(start)>2 or len(end) > 2:
+			raise Exception( "This method is for 2D only now." );
+
+		dx = end[0]-start[0];
+		dy = end[1]-start[1];
+		length = math.sqrt( dx**2 + dy**2 );
+		if math.fabs(length) < 0.001:
+			return True;
+		cosTheta = dx / length;
+		sinTheta = dy / length;
+		stepLen = 1.0;
+
+		isInitInside = False;
+		nextCheckPoint = ( start[0]+stepLen*cosTheta, start[1]+stepLen*sinTheta );
+		dist2End = length-1.0;
+		i = 0;                 # Steps
+		while( dist2End >= 1.0 ):
+			if( self.isConfigInObstacle( nextCheckPoint ) ):
+				return False;
+			nextCheckPoint = ( start[0]+stepLen*i*cosTheta, start[1]+stepLen*i*sinTheta );
+			dist2End = math.sqrt( (nextCheckPoint[0]-end[0])**2 + (nextCheckPoint[1]-end[1])**2 );
+			i += 1;
+		return True;
 
 	def isConfigInObstacle(self, sample):
 		space = Rect( 0,0, self.mScreenWidth, self.mScreenHeight );

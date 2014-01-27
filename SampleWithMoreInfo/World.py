@@ -63,10 +63,10 @@ class World:
 		worldFile.close();
 		pass;
 
-	def drawSpacesToPic( self, ImgSurface ):
+	def renderCSpace( self, ImgSurface ):
 		for space in self.mSpaces:
 			space.render( ImgSurface, World.g_spaceColor, World.g_spaceThickness );
 
-	def drawObstaclesToPic(self, ImgSurface):
+	def renderObstacles(self, ImgSurface):
 		for obc in self.mObstMgr.mObstacles:
 			obc.render( ImgSurface, World.g_obcColor, World.g_obcThickness );
