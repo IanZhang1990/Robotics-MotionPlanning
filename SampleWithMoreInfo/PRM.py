@@ -156,26 +156,60 @@ class PRM:
 
 	def buildPRM_star(self, imgSurf=None):
 		samples = self.mSampleMgr.sampleFree(800);
-		firstVert = Node(samples[100]);
-		self.mGraph = Graph( firstVert );
+		self.mGraph = self.__build_PRM_star__( samples, imgSurf );
+		pass;
+
+	def build_nonvisArea_PRM_star( self, imgSurf = None ):
+		samples = self.mSampleMgr.sampleNonVisArea( 200 );
+		self.mGraph = self.__build_PRM_star__( samples, imgSurf );
+		pass
+
+	def __build_PRM_star__(self, samples, imgSurf = None):
+		firstVert = Node(samples[0]);
+		graph = Graph( firstVert );
 
 		for samp in samples:
-			n = len(self.mGraph.mVertices);
+			n = len(graph.mVertices);
 			d = 2;
 			#r_prm = math.pow(math.log(n)/n, 1.0/d) * math.sqrt( 1366**2+768**2 ) / 1.5;
 			#OMPL implementation:
 			k = 2 * math.e * math.log(n);
 			vert = Node( samp );
-			neighbors = self.mGraph.findKNearVertices( vert, k );
-			self.mGraph.addNode( vert );
+			neighbors = graph.findKNearVertices( vert, k );
+			graph.addNode( vert );
 			for neighbor in neighbors:
 				if self.mObstMgr.isPathFree( vert.mVal, neighbor.mVal ):
-					self.mGraph.addEdge( vert, neighbor );
-					#self.mGraph.addEdge( neighbor, vert );
+					graph.addEdge( vert, neighbor );
+					#graph.addEdge( neighbor, vert );
 					if imgSurf:
 						pygame.draw.line( imgSurf, (0,250,0), vert.mVal, neighbor.mVal, 1 );
 						pygame.display.update();
-		pass;
+
+		return graph;
+
+
+	def __build_PRM_star_out_of_spheres__(self, samples, imgSurf = None):
+		firstVert = Node(samples[0]);
+		graph = Graph( firstVert );
+
+		for samp in samples:
+			n = len(graph.mVertices);
+			d = 2;
+			#r_prm = math.pow(math.log(n)/n, 1.0/d) * math.sqrt( 1366**2+768**2 ) / 1.5;
+			#OMPL implementation:
+			k = 2 * math.e * math.log(n);
+			vert = Node( samp );
+			neighbors = graph.findKNearVertices( vert, k );
+			graph.addNode( vert );
+			for neighbor in neighbors:
+				if self.mObstMgr.isPathFree( vert.mVal, neighbor.mVal ):
+					graph.addEdge( vert, neighbor );
+					#graph.addEdge( neighbor, vert );
+					if imgSurf:
+						pygame.draw.line( imgSurf, (0,250,0), vert.mVal, neighbor.mVal, 1 );
+						pygame.display.update();
+
+		return graph;
 
 	def renderRoadMap(self, imgSurf, color=None):
 		self.mGraph.render( imgSurf, color );

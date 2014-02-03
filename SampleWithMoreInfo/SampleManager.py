@@ -30,6 +30,9 @@ class DistSample:
 		else:
 			return False;		
 
+	def collideWithPath(self, x1, y1, x2, y2):
+		
+
 class SampleManager:
 	def __init__( self, world ):
 		self.mWorld = world;
@@ -66,6 +69,31 @@ class SampleManager:
 		self.mFreeSamples = freeSamp;
 		print "Finished sampling free space, got {0} samples!".format( len(freeSamp) );
 		return freeSamp;
+
+	def sampleNonVisArea( self, num ):
+		"""After sampling many configurations with distance info. 
+		There is still space not covered by those (hyper-)spheres.
+		This method samples in the non-visiable area, and get num samples"""
+		if len(self.mDistSamples) == 0:
+			raise Exception( "Please sample (hyper)spheres in configuration space first." );
+		
+		samples = [];
+		sampCount = 0;
+		while( sampCount < num ):
+			irand_1 = randrange(0, self.mWorld.mWidth);
+			irang_2 = randrange(0, self.mWorld.mHeight);
+			newSamp = ( irand_1, irang_2 );
+			newSampValid = True;
+			for distSamp in self.mDistSamples:
+				if distSamp.withInArea( newSamp[0], newSamp[1] ):
+					newSampValid = False;
+					break;
+			if newSampValid:
+				samples += [newSamp];
+				sampCount += 1;
+
+		return samples;
+
 
 	def sampleObst(self, num):
 		"""Sample obstacle space only, return num samples"""

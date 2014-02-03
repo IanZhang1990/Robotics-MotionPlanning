@@ -63,21 +63,30 @@ def main():
 	#ray.drawRay(initSampleImage);
 	#pygame.draw.circle( initSampleImage, ( 0, 250, 0 ), (247, 260), int(dist), 1 );
 
+	"""
 	print "\nBegin to build PRM* at :{0}".format(datetime.datetime.now());
 	prm = PRM( sampleWorld.mObstMgr, sampleMgr );
 	prm.buildPRM_star();
 	prm.renderRoadMap( initSampleImage);
-
+	"""
 
 	print "\nBegin to sample spheres at :{0}".format(datetime.datetime.now());
 	#sampleMgr.timeSafeSampleWithDistance( 20, 3 );
 	#sampleMgr.sampleWithMoreInfo(20);
-	sampleMgr.sampleWithDistInfo_multiThread( 100 );
+	sampleMgr.sampleWithDistInfo_multiThread( 5 );
 	sampleMgr.writeSamplesToFile( "distSample.txt" );
 	sampleMgr.renderDistSample( initSampleImage );
+	
+
+
+	print "\nBegin to build PRM* at :{0}".format(datetime.datetime.now());
+	prm = PRM( sampleWorld.mObstMgr, sampleMgr );
+	prm.build_nonvisArea_PRM_star(initSampleImage);
+	prm.renderRoadMap( initSampleImage);
+
 	pygame.image.save( initSampleImage, "SamplingImage.PNG" );
 
-
+	"""
 	afterSpanningImg = pygame.display.set_mode( (WIDTH, HEIGHT) );
 	afterSpanningImg.fill( (255, 255, 255) );
 
@@ -93,6 +102,7 @@ def main():
 	graph.render( afterSpanningImg, (0,250,0) );
 	sampleMgr.renderDistSample( afterSpanningImg );
 	pygame.image.save( afterSpanningImg, "AfterSpanning.PNG" );
+	"""
 
 	return;
 
