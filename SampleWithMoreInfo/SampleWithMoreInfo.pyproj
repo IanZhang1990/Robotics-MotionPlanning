@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6b689dad-59da-471b-bb0d-365c55af846a}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>SampleWithMoreInfo.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <ItemGroup>
+    <Content Include="distSample.txt" />
+    <Content Include="PlotdistSample.txt" />
+    <Content Include="world.txt" />
+    <Content Include="AfterSpanning.PNG" />
+    <Content Include="SamplingImage.PNG" />
+    <Content Include="World (copy).PNG" />
+    <Content Include="World.PNG" />
+    <Compile Include="GraphSpanner.py" />
+    <Compile Include="multi-Thread.py" />
+    <Compile Include="Obstacle.py" />
+    <Compile Include="PriorityQueue.py" />
+    <Compile Include="PRM.py" />
+    <Compile Include="Ray.py" />
+    <Compile Include="SampleManager.py" />
+    <Compile Include="SampleWithMoreInfo.py" />
+    <Compile Include="World.py" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+</Project>

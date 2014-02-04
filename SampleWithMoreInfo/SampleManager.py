@@ -30,8 +30,8 @@ class DistSample:
 		else:
 			return False;		
 
-	def collideWithPath(self, x1, y1, x2, y2):
-		
+	#def collideWithPath(self, x1, y1, x2, y2):
+    #    pass;
 
 class SampleManager:
 	def __init__( self, world ):
