@@ -109,6 +109,8 @@ class SampleManager:
 		self.mObstSamples = obstSamp;
 		return obstSamp;
 
+    ###=======================================================================================
+    ###===== Strategy 1: Randomly sample spheres
 	def timeSafeSampleWithDistance( self, num, timeout ):
 		"""Randomly sample configurations in the c-space
 		@param num: termination conditon. num times failed to find a new point, then terminate.
@@ -202,6 +204,68 @@ class SampleManager:
 					failTimes=0;
 
 		print "Get {0} samples".format( len(self.mDistSamples) );
+        pass
+    
+    ###=======================================================================================
+    ###=== Strategy 2: Randomly sample one sphere, then sample from the boundary
+    ###===         Then keep sampling the new boundary of the set of spheres
+    def sampleWithDistInfo_boundaryStrategy_multiThread(self, num):
+    	"""Randomly sample one configuration in the c-space. (Get a initia sphere)
+        Then begin to sample in the boundary of the sphere, add the sphere to the set,
+        then keep sampling the set's boundary.
+		@param num: termination conditon. num times failed to find a new point, then terminate.
+		"""
+		try:
+			self.g_failTimes.value = 0;
+			threads = [];
+			threadsCount = 4;
+			for i in range(0,threadsCount):
+				newThread = Process( target=self.__mltithreadDistSample__, args=[ i,num ] );
+				threads += [newThread];
+			for i in range( 0,threadsCount ):
+				threads[i].start();
+			for i in range( 0,threadsCount ):
+				threads[i].join();
+
+			print "Get {0} samples".format( len(self.mDistSamples) );
+
+		except Exception, msg:
+			print "Failed to start a thread, MSG:\n\t" + msg;
+			self.g_failTimes.value = 0;
+
+	def __mltithreadDistSample_boundaryStrategy__(self, threadname, num):
+		while( self.g_failTimes.value < num ):
+			#print "Thread:\t{0} failedTimes:\t{1}\n".format( threadname, self.g_failTimes );
+			rnd1 = randrange(0,self.mWorld.mWidth);
+			rnd2 = randrange(0,self.mWorld.mHeight);
+
+			newSamp = True;
+			for sample in self.mDistSamples:
+				if sample.withInArea( rnd1, rnd2 ):
+					newSamp = False;
+					self.g_failTimes.value += 1
+					break;
+
+			if newSamp:
+				# randomly shoot rays to get the nearest distance to obstacles
+				rayShooter = RayShooter( rnd1, rnd2, self.mObstMgr );
+				dist = rayShooter.randShoot(72);
+				if math.fabs(dist) >= 1.0:
+					newDistSamp = DistSample(rnd1, rnd2, dist)
+					for samp in self.mDistSamples:
+						# Check if old sample is with the area of the new sample;
+						if newDistSamp.withInArea( samp.mSample[0], samp.mSample[1] ):
+							try:
+								self.mDistSamples.remove( samp );
+							except:
+								continue;
+					(self.mDistSamples) += [ newDistSamp ];
+					self.g_failTimes.value=0;
+
+		#print "Get {0} samples in thread {1}".format( len(self.mDistSamples), threadname );
+
+
+
 
 
 	def renderDistSample(self, ImgSurface):
