@@ -7,18 +7,40 @@ from Obstacle import *
 from Ray import *
 from World import *
 import pygame
-
+from Queue import Queue
+from collections import defaultdict
+import multiprocessing
 from multiprocessing  import Process, Manager, Value, Array
+
 import signal
 
 def signal_handler(signum, frame):
 	raise Exception( "Timed Out!!!" );
 
 class DistSample:
-	"""Sample with distance to obstacles"""
+	"""Sample with distance to obstacles.
+	A dist sample can be viewed as a sphere in Rn space"""
 	def __init__(self, x, y, radius):
 		self.mSample = (x,y)
 		self.mRadius = radius;
+
+	def getBoundaryConfigs(self, num=0):
+		""" Get configs in the boundary of the sphere. For 2D only!!!!
+		@param num: the number of boundary configs you need. 
+		When num = 0, automatically get boundary configs.
+		"""
+		retSet = []
+		if( num == 0 ):
+			num = self.mRadius / 5 + 5;
+
+		dlt_ang = (2*math.pi) / float(num); # increment of angle;
+		for i in range(1, int(num)+1):
+			ang = dlt_ang * i;
+			newX = self.mSample[0]+(self.mRadius+1.3)*math.cos( ang );
+			newY = self.mSample[1]+(self.mRadius+1.3)*math.sin( ang );
+			retSet += [ (newX, newY) ]
+		return retSet;
+
 
 	def withInArea(self, x, y):
 		dx = x - self.mSample[0];
@@ -108,6 +130,40 @@ class SampleManager:
 
 		self.mObstSamples = obstSamp;
 		return obstSamp;
+
+	def getARandomFreeSample(self, num):
+		"""Randomly sample the space and return a free sample (with distance info).
+		The sample is not inside of any other sphere. Also, this method will not automatically 
+		add the new sample to self.mDistSamples list.
+		@param num: fail time. If failed to find such a sample num times, return null"""
+		failTime=0;
+		while( failTime < num ):
+			rnd1 = randrange(0,self.mWorld.mWidth);
+			rnd2 = randrange(0,self.mWorld.mHeight);
+			if( self.mObstMgr.isConfigInObstacle( (rnd1, rnd2) ) ):
+				continue;
+
+			newSamp = True;
+			for sample in self.mDistSamples:
+				if sample.withInArea( rnd1, rnd2 ):
+					newSamp = False;
+					failTime += 1
+					break;
+			if newSamp:
+				# randomly shoot rays to get the nearest distance to obstacles
+				rayShooter = RayShooter( rnd1, rnd2, self.mObstMgr );
+				dist = rayShooter.randShoot(72);
+				if math.fabs(dist) >= 1.0:
+					newDistSamp = DistSample(rnd1, rnd2, dist);
+					#(self.mDistSamples).append( newDistSamp );
+					print "failed times: {0}".format( failTime );
+					failTime=0;
+					return newDistSamp;
+				else:
+					failTime += 1;
+
+		return None;
+
 
     ###=======================================================================================
     ###===== Strategy 1: Randomly sample spheres
@@ -205,22 +261,31 @@ class SampleManager:
 
 		print "Get {0} samples".format( len(self.mDistSamples) );
         pass
-    
-    ###=======================================================================================
-    ###=== Strategy 2: Randomly sample one sphere, then sample from the boundary
-    ###===         Then keep sampling the new boundary of the set of spheres
-    def sampleWithDistInfo_boundaryStrategy_multiThread(self, num):
-    	"""Randomly sample one configuration in the c-space. (Get a initia sphere)
-        Then begin to sample in the boundary of the sphere, add the sphere to the set,
-        then keep sampling the set's boundary.
-		@param num: termination conditon. num times failed to find a new point, then terminate.
+
+	###=======================================================================================
+	###=== Strategy 2: Randomly sample one sphere, then sample from the boundary
+	###===         Then keep sampling the new boundary of the set of spheres
+	def sampleWithDistInfo_boundStrat_multiThread(self, num):
+		"""Randomly sample one configuration in the c-space first. (Get a sphere)
+		Then add the sphere to result set.
+		repeat:
+			sample the boundary of spheres set.
+			add new sphere to the set
+		until 
+
+		@param num: Total number of spheres as a terminate condition.                     ###################### TODO: find a terminate condition that can be used to evaluate sphere coverage
 		"""
 		try:
+			#self.mDistSamples = Manager().list();
 			self.g_failTimes.value = 0;
+			boundaryQueue = multiprocessing.Queue();
+			dictProxy = Manager().list()
+			dictProxy.append({});
+			
 			threads = [];
-			threadsCount = 4;
+			threadsCount = 1;
 			for i in range(0,threadsCount):
-				newThread = Process( target=self.__mltithreadDistSample__, args=[ i,num ] );
+				newThread = Process( target=self.__mltithreadDistSample_boundStrat__, args=[ i, dictProxy, boundaryQueue,num ] );
 				threads += [newThread];
 			for i in range( 0,threadsCount ):
 				threads[i].start();
@@ -230,53 +295,140 @@ class SampleManager:
 			print "Get {0} samples".format( len(self.mDistSamples) );
 
 		except Exception, msg:
-			print "Failed to start a thread, MSG:\n\t" + msg;
+			print "Failed to start a thread, MSG:\n\t" + str(msg);
 			self.g_failTimes.value = 0;
 
-	def __mltithreadDistSample_boundaryStrategy__(self, threadname, num):
-		while( self.g_failTimes.value < num ):
-			#print "Thread:\t{0} failedTimes:\t{1}\n".format( threadname, self.g_failTimes );
-			rnd1 = randrange(0,self.mWorld.mWidth);
-			rnd2 = randrange(0,self.mWorld.mHeight);
+	def distSampleOneThread( self, num ):
+		self.mDistSamples = [];
+		boundaryQueue = Queue();
+		bndSphDict = defaultdict();
 
-			newSamp = True;
-			for sample in self.mDistSamples:
-				if sample.withInArea( rnd1, rnd2 ):
-					newSamp = False;
-					self.g_failTimes.value += 1
-					break;
+		randFreeSamp = 1234;
+		while( randFreeSamp != None ):
+			randFreeSamp = self.getARandomFreeSample( num );
+			if( randFreeSamp == None ):
+				return;
+			print "Size of dist samples {0}".format( len( self.mDistSamples ) );
+			self.mDistSamples.append( randFreeSamp );
+			bounds = randFreeSamp.getBoundaryConfigs();
 
-			if newSamp:
+			for bndConfig in bounds:						
+				#if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
+				bndSphDict[bndConfig] = randFreeSamp;
+				boundaryQueue.put( bndConfig );				# put the boundary config to the queue.
+
+			while( not boundaryQueue.empty() ):
+				print "Size of dist samples {0}".format( len( self.mDistSamples ) );
+				if( len(self.mDistSamples) % 100 == 0 ):
+					randFreeSamp = self.getARandomFreeSample( num );
+					if( randFreeSamp == None ):
+						return;
+					(self.mDistSamples).append( randFreeSamp )
+					bounds = randFreeSamp.getBoundaryConfigs();		# get the boundary configs
+						for bndConfig in bounds:						
+							#if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
+							bndSphDict[bndConfig] = newDistSamp;
+							boundaryQueue.put( bndConfig );				# put the boundary config to the queue.
+
+
+				bnd = boundaryQueue.get();							# get a new boundary 
+				newSamp = True;
+				for sample in self.mDistSamples:
+					if sample.withInArea( bnd[0], bnd[1] ):
+												# check if within any spheres, not including the sphere that the boundary config belongs to.
+						newSamp = False;
+						break;
+
+				if newSamp:
+					# randomly shoot rays to get the nearest distance to obstacles
+					rayShooter = RayShooter( bnd[0], bnd[1], self.mObstMgr );	# Shot ray
+					dist = rayShooter.randShoot(72);					# Get the distance to obstacles
+					if math.fabs(dist) >= 1.0:							# if not too close to obstacles
+						newDistSamp = DistSample(bnd[0], bnd[1], dist)	# construct a new dist sample
+						(self.mDistSamples).append( newDistSamp );				# add to our dist sample set
+						bounds = newDistSamp.getBoundaryConfigs();		# get the boundary configs
+						for bndConfig in bounds:						
+							#if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
+							bndSphDict[bndConfig] = newDistSamp;
+							boundaryQueue.put( bndConfig );				# put the boundary config to the queue.
+
+
+	def __mltithreadDistSample_boundStrat__(self, threadname, proxy, boundaryQueue, num):
+		"""@param proxy: a proxy with a boundary-sphere dictionary as the first element. indicates a boundary belongs to a sphere.
+		@param boundaryQueue: Queue of boundary configs
+		@param num: terminate condition.
+		"""
+		bndSphDict = proxy[0];
+
+		"""
+		getALegalSample = False;
+		while( not getALegalSample ):
+			randSamp = ( randrange(0,self.mWorld.mWidth), randrange(0,self.mWorld.mHeight) );
+			if not self.mObstMgr.isConfigInObstacle( (randSamp[0], randSamp[1]) ):
+				getALegalSample = True;
 				# randomly shoot rays to get the nearest distance to obstacles
-				rayShooter = RayShooter( rnd1, rnd2, self.mObstMgr );
+				rayShooter = RayShooter( randSamp[0], randSamp[1], self.mObstMgr );
 				dist = rayShooter.randShoot(72);
-				if math.fabs(dist) >= 1.0:
-					newDistSamp = DistSample(rnd1, rnd2, dist)
-					for samp in self.mDistSamples:
-						# Check if old sample is with the area of the new sample;
-						if newDistSamp.withInArea( samp.mSample[0], samp.mSample[1] ):
-							try:
-								self.mDistSamples.remove( samp );
-							except:
-								continue;
-					(self.mDistSamples) += [ newDistSamp ];
-					self.g_failTimes.value=0;
+				if math.fabs(dist) >= 1.0:						# if not too close to obstacles
+					newSamp = DistSample(randSamp[0], randSamp[1], dist);# it is considered as a new dist sample (a new sphere)
+					self.mDistSamples += [ newSamp ];			# add it to our dist sample set
+					bounds = newSamp.getBoundaryConfigs();		# get configs in the boundary of the sphere.
+					for bndConfig in bounds:
+						if not bndConfig in bndSphDict:			# add config-sphere relationship info
+							bndSphDict[bndConfig] = newSamp;
+						boundaryQueue.put( bndConfig );			# put the boundary config to the queue
+		"""
+	
+		randFreeSamp = 1234;
+		while( randFreeSamp != None ):
+			print "Size of samples {0}".format( len( self.mDistSamples ) );
+			randFreeSamp = self.getARandomFreeSample( num );
+			if( randFreeSamp == None ):
+				return
+			self.mDistSamples.append( randFreeSamp );
+			bounds = randFreeSamp.getBoundaryConfigs();
 
-		#print "Get {0} samples in thread {1}".format( len(self.mDistSamples), threadname );
+			for bndConfig in bounds:						
+				#if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
+				bndSphDict[bndConfig] = randFreeSamp;
+				boundaryQueue.put( bndConfig );				# put the boundary config to the queue.
 
+			while( not boundaryQueue.empty() ):
+				if( self.getARandomFreeSample( num ) == None ):
+					return;
+				bnd = boundaryQueue.get();							# get a new boundary 
+				newSamp = True;
+				for sample in self.mDistSamples:
+					if sample.withInArea( bnd[0], bnd[1] ):
+												# check if within any spheres, not including the sphere that the boundary config belongs to.
+						newSamp = False;
+						break;
 
-
+				if newSamp:
+					# randomly shoot rays to get the nearest distance to obstacles
+					rayShooter = RayShooter( bnd[0], bnd[1], self.mObstMgr );	# Shot ray
+					dist = rayShooter.randShoot(72);					# Get the distance to obstacles
+					if math.fabs(dist) >= 1.0:							# if not too close to obstacles
+						newDistSamp = DistSample(bnd[0], bnd[1], dist)	# construct a new dist sample
+						(self.mDistSamples).append( newDistSamp );				# add to our dist sample set
+						bounds = newDistSamp.getBoundaryConfigs();		# get the boundary configs
+						for bndConfig in bounds:						
+							#if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
+							bndSphDict[bndConfig] = newDistSamp;
+							boundaryQueue.put( bndConfig );				# put the boundary config to the queue.
+			#randFreeSamp = self.getARandomFreeSample( num );
 
 
 	def renderDistSample(self, ImgSurface):
 		"""Render distance sample to image"""
+		print "render {0} dist samples to the image".format( len(self.mDistSamples) );
 		freeColor = ( 0, 0, 250 );
 		obstColor = ( 200, 0, 100 );
 		for samp in self.mDistSamples:
 			if samp.mRadius > 0: # Free sample
-				pygame.draw.circle( ImgSurface, freeColor, (samp.mSample[0], samp.mSample[1]), int(math.fabs(samp.mRadius)), 1 );
+				pygame.draw.circle( ImgSurface, freeColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
 			else:
-				pygame.draw.circle( ImgSurface, obstColor, (samp.mSample[0], samp.mSample[1]), int(math.fabs(samp.mRadius)), 1 );
+				pygame.draw.circle( ImgSurface, obstColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
 
 	def writeSamplesToFile( self, filename ):
 		file2write = open( filename, 'w' );

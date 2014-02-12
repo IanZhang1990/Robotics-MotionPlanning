@@ -73,16 +73,16 @@ def main():
 	print "\nBegin to sample spheres at :{0}".format(datetime.datetime.now());
 	#sampleMgr.timeSafeSampleWithDistance( 20, 3 );
 	#sampleMgr.sampleWithMoreInfo(20);
-	sampleMgr.sampleWithDistInfo_multiThread( 5 );
+	sampleMgr.distSampleOneThread( 200 );
+	#sampleMgr.sampleWithDistInfo_multiThread( 10 )
 	sampleMgr.writeSamplesToFile( "distSample.txt" );
 	sampleMgr.renderDistSample( initSampleImage );
-	
 
 
-	print "\nBegin to build PRM* at :{0}".format(datetime.datetime.now());
-	prm = PRM( sampleWorld.mObstMgr, sampleMgr );
-	prm.build_nonvisArea_PRM_star(initSampleImage);
-	prm.renderRoadMap( initSampleImage);
+	#print "\nBegin to build PRM* at :{0}".format(datetime.datetime.now());
+	#prm = PRM( sampleWorld.mObstMgr, sampleMgr );
+	#prm.build_nonvisArea_PRM_star(initSampleImage);
+	#prm.renderRoadMap( initSampleImage);
 
 	pygame.image.save( initSampleImage, "SamplingImage.PNG" );
 
@@ -107,6 +107,5 @@ def main():
 	return;
 
 if __name__ == "__main__":
-    freeze_support()
     main()
     
