@@ -13,7 +13,12 @@ class Obstacle:
 
 	def isInside(self, x, y):
 		""" Virtual super class of obstacles """
+		raise Exception("Not implemented, yet");
 		return False;
+
+	def rayIntersect( self, ray ):
+		"""Test if a ray hits the object. This is for spheres and rectangles only"""
+		raise Exception("Not implemented, yet");
 
 class Rect(Obstacle):
 	def __init__(self, x, y, width, height):
