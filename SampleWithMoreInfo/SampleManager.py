@@ -325,10 +325,10 @@ class SampleManager:
 						return;
 					(self.mDistSamples).append( randFreeSamp )
 					bounds = randFreeSamp.getBoundaryConfigs();		# get the boundary configs
-						for bndConfig in bounds:						
-							#if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
-							bndSphDict[bndConfig] = newDistSamp;
-							boundaryQueue.put( bndConfig );				# put the boundary config to the queue.
+					for bndConfig in bounds:						
+						#if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
+						bndSphDict[bndConfig] = newDistSamp;
+						boundaryQueue.put( bndConfig );				# put the boundary config to the queue.
 
 
 				bnd = boundaryQueue.get();							# get a new boundary 
@@ -439,3 +439,13 @@ class SampleManager:
 
 		file2write.write( formattedData );
 		file2write.close();
+
+	def loadDistSamplesFromFile( self, filename ):
+		file2read = open( filename, 'r' );
+		self.mDistSamples = [];
+		for line in file2read:
+			strDistSamp = line;
+			info = strDistSamp.split( '\t' );
+			distSamp = DistSample( float(info[0]), float(info[1]), float(info[2]));
+			if( distSamp.mRadius > 2 ):
+				self.mDistSamples += [ distSamp ];

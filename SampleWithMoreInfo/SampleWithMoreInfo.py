@@ -5,6 +5,7 @@ from Obstacle import *
 from SampleManager import *
 from PRM import *
 from GraphSpanner import *
+from AstarSearcher import *
 
 pygame.init()
 WIDTH = 1366
@@ -73,9 +74,10 @@ def main():
 	print "\nBegin to sample spheres at :{0}".format(datetime.datetime.now());
 	#sampleMgr.timeSafeSampleWithDistance( 20, 3 );
 	#sampleMgr.sampleWithMoreInfo(20);
-	sampleMgr.distSampleOneThread( 200 );
 	#sampleMgr.sampleWithDistInfo_multiThread( 10 )
-	sampleMgr.writeSamplesToFile( "distSample.txt" );
+	#sampleMgr.distSampleOneThread( 200 );
+	#sampleMgr.writeSamplesToFile( "distSample.txt" );
+	sampleMgr.loadDistSamplesFromFile( "distSample.txt" );
 	sampleMgr.renderDistSample( initSampleImage );
 
 
@@ -83,6 +85,12 @@ def main():
 	#prm = PRM( sampleWorld.mObstMgr, sampleMgr );
 	#prm.build_nonvisArea_PRM_star(initSampleImage);
 	#prm.renderRoadMap( initSampleImage);
+
+	astarSearcher = AstarSearcher( sampleMgr.mDistSamples );
+	path = astarSearcher.astarSearch( (472,257), (679,559) );
+	for i in range( 1, len(path) ):
+		pygame.draw.line( initSampleImage, (0,255,0), path[i-1], path[i] );
+
 
 	pygame.image.save( initSampleImage, "SamplingImage.PNG" );
 
