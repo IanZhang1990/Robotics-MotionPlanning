@@ -104,6 +104,7 @@ class AstarSearcher:
 
 		while len(openList) is not 0:
 			current = min(openList, key=lambda inst:inst.mF);
+			openList.remove( current );
 			owenerSphere = current.mSphere;
 			successors = self.getSphereBoundaries(ownerShpere, goal);
 			print current.mPosition;
