@@ -2,6 +2,8 @@
 import sys, os, datetime
 import math
 from collections import defaultdict
+from time import sleep
+import pygame
 
 from SampleManager import DistSample
 from PriorityQueue import PriorityQueue;
@@ -69,20 +71,21 @@ class AstarSearcher:
 
 		neighborSpheres = self.mOverlapDict[sphere];
 
-		illegalPoints = [];
+		legalPoints = [];
 		for point in points:
 			for neighborSphere in neighborSpheres:
-				if neighborSphere.withInArea( point[0], point[1] ):
-					illegalPoints += [(point, neighborSphere)]
+				if neighborSphere is not sphere and neighborSphere.withInArea( point[0], point[1] ):
+					legalPoints += [(point, neighborSphere)]
+					break;
 
-		return illegalPoints;
+		return legalPoints;
 
 	def distance( self, one, two ):
 		dx = one[0] - two[0];
 		dy = one[1] - two[1];
 		return math.sqrt(dx**2+dy**2);
 
-	def astarSearch( self, start, goal ):
+	def astarSearch( self, start, goal, imgsurface=None ):
 		"""Given a start and goal point, search for an optimal path connecting them"""
 
 
@@ -104,12 +107,21 @@ class AstarSearcher:
 
 		while len(openList) is not 0:
 			current = min(openList, key=lambda inst:inst.mF);
+			if( imgsurface is not None ):
+				pygame.draw.circle( imgsurface, (0,255,0), (int(current.mPosition[0]), int(current.mPosition[1])), 2 );
+				pygame.display.update();
+				#sleep(0.5);
 			openList.remove( current );
-			owenerSphere = current.mSphere;
-			successors = self.getSphereBoundaries(ownerShpere, goal);
-			print current.mPosition;
+			currOwnerSphere = current.mSphere;
+			successors = self.getSphereBoundaries(currOwnerSphere, goal);
+			#print "current: {0} \towener Sphere: {1}".format(current.mPosition, currOwnerSphere.mSample);
+			#print current.mPosition;
 			for suc in successors:
 				sucSamp = suc[0];
+				if( imgsurface is not None ):
+					pygame.draw.circle( imgsurface, (255,0,0), (int(sucSamp[0]), int(sucSamp[1])), 2, 1 );
+					pygame.display.update();
+					#sleep(0.01);
 				sucOwnerSphere = suc[1];
 				sucNode = AstarNode( sucSamp[0], sucSamp[1], current, sucOwnerSphere )
 				if sucSamp == goal:
@@ -117,7 +129,7 @@ class AstarSearcher:
 				sucNode.mG = current.mG + self.distance( sucSamp, current.mPosition );
 				sucNode.mH = self.distance( sucSamp, goal );
 				sucNode.mF = sucNode.mG + sucNode.mH;
-				print "sample: {0} has heuristic {1}".format(sucSamp, sucNode.mF);
+				#print "sample: {0} has heuristic {1}, \towener Sphere: {2}".format(sucSamp, sucNode.mF, sucOwnerSphere.mSample);
 
 				samePos = filter( lambda inst: inst.mPosition[0]==sucSamp[0] and inst.mPosition[1]==sucSamp[1], openList)
 

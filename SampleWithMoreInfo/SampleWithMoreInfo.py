@@ -87,9 +87,10 @@ def main():
 	#prm.renderRoadMap( initSampleImage);
 
 	astarSearcher = AstarSearcher( sampleMgr.mDistSamples );
-	path = astarSearcher.astarSearch( (472,257), (679,559) );
-	for i in range( 1, len(path) ):
-		pygame.draw.line( initSampleImage, (0,255,0), path[i-1], path[i] );
+	path = astarSearcher.astarSearch( (314,113), (312, 290), initSampleImage );
+	if path is not None:
+		for i in range( 1, len(path) ):
+			pygame.draw.line( initSampleImage, (0,255,0), path[i-1], path[i] );
 
 
 	pygame.image.save( initSampleImage, "SamplingImage.PNG" );
@@ -115,5 +116,5 @@ def main():
 	return;
 
 if __name__ == "__main__":
-	freeze_support();
+	#freeze_support();
 	main();
