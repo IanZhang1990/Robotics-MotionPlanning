@@ -1,0 +1,118 @@
+ \documentclass[11pt]{article}
+ \usepackage{graphicx}    % needed for including graphics e.g. EPS, PS
+ \usepackage[]{algorithm2e}
+ \topmargin -1.5cm        % read Lamport p.163
+ \oddsidemargin -0.04cm   % read Lamport p.163
+ \evensidemargin -0.04cm  % same as oddsidemargin but for left-hand pages
+ \textwidth 16.59cm
+ \textheight 21.94cm 
+ %\pagestyle{empty}       % Uncomment if don't want page numbers
+ \parskip 7.2pt           % sets spacing between paragraphs
+ %\renewcommand{\baselinestretch}{1.5} 	% Uncomment for 1.5 spacing between lines
+ \parindent 0pt		  % sets leading space for paragraphs
+
+ \begin{document}         
+ % Start your text
+ 
+ \section{Sphere sampling algorithm}
+ \label{Sphere sampling algorithm}
+ \begin{algorithm}[H]
+ 	\KwData{Configuration Space}
+ 	\KwResult{Spheres that cover most of the free space}
+ 	s0 = sampleSphere( randomly position )
+ 	S = {s0}
+ 	\Comment{Every two boundary points distance equals to \delta}
+ 	boundaryQueue = a queue that contains all boundary points of s0
+ 	\While{ boundaryQueue is not empty }{
+ 		point = boundaryQueue.pop();
+ 		\If( point in an sphere ){
+ 			continue;
+ 		}{
+ 			si = sampleSphere( point );
+ 			\If(si.radius >= \delta )
+ 			{
+ 				S = S \cap {si}
+ 				boundaryQueue.put( all boundary points of si ); 
+ 			}
+ 		}
+ 	}
+ 	\caption{ Sphere sampling algorithm }
+ \end{algorithm}
+
+
+ \section{Path searhing alogrithm}
+ \label{Path searching algorithm}
+ \begin{algorithm}[H]
+ 	\KwData{spheres, start configuration, goal configuration}
+ 	\KwResult{a path that connects start and end configuratioin. Or fail.}
+ 	openSet = priority queue containing start.
+ 	closedSet = empty set.
+ 	\While{ openSet is not empty }{
+ 		current = remove lowest rank point from openSet;
+ 		add current to closedSet;
+ 		neighbors = getSuccessors( current );
+ 		\ForEach{neighbor in neighbors}{
+ 			\If( neighbor == goal ){
+ 				set neighbors' parent to current;
+ 				backtrain( neighbor )
+ 			}{
+ 				cost = g(current) + movementcost(current, neighbor)
+
+ 				\If(neighbor in openSet and cost less than g(neighbor)){
+ 					remove neighbor from openSet; \Comment{because new path is better}
+ 				}
+ 				\If(neighbor in closedSet and cost less than g(neighbor)){
+ 					remove neighbor from closedSet;
+ 				}
+ 				\If( neighbor not in openSet or closedSet ){
+ 					set g(neighbor) to cost;
+ 					add neighbor to openSet;
+ 					set priority queue rank to g(neighbor) + h(neighbor);
+ 					set neighbors' parent to current;
+ 				}
+ 			}
+ 		}
+ 	}
+ 	\caption{ Search an Optimal Path }
+ \end{algorithm}
+
+
+ \begin{algorithm}[H]
+ 	\KwData{point, goal}
+ 	\KwResult{successor points}
+ 	sphere = get the sphere that contains point
+ 	\If( sphere contains goal ){
+ 		return goal.
+ 	}{
+ 		return boundary points of sphere.
+ 	}
+ 	\caption{ getSuccessors() }
+ \end{algorithm}
+
+
+
+ \section{Finite number of spheres}
+ \label{Finite number of spheres}
+ As is shown in the algorithm, we get boundary points of an existing sphere by limiting the distance between every two points to be equal to \delta. Then the algorithm samples new spheres centered at these points. So the distance between two spheres centers is always larger than or equal to \delta. 
+
+ The problem is equivalant to proof there could be finite number of points put in the space such that the distance between every two points is larger than or equal to \delta.
+
+ Assume we partition the whole configuration space( including free space and obstacle space ) into hyper-cubes. The length of every edge of these hyper-cubes is exactly \delta. As long as the configuration space has finite volume, the number of hyper-cubes is finite. Assume the number of hyper-cubes is N, the number of hyper-cubes that is totall or partly in free space is less than N. Thus the number of spheres is finite, and less than N.
+
+ So the algorithm will always converge.
+
+ \section{Path quality}
+ \label{Path quality}
+ Assuming the path maintains \delta clearance, the worst path found by our algorithm is this: the optimal path is in a chain of spheres with radius \delta. The point our algorithm chooses to use is \delta/2 away from the actual point the path is going through, as is shown in the graph.
+
+ Then the chosen path is 2 times of length of the actual optimal path. ????????? SO BAD?
+
+ \section{Inaccurate matric}
+ \label{Inaccurate matric}
+ Suppose we have an inccurate matric which gives us the distance to obstacle:
+ dist[i] = accurate_dist[i] / c[i], where 1<= c[i] <= upper_bound. When sampling at a point near the obstacle, dist[i] = accurate_dist[i] / c[i] = \delta the algorithm will stop sampling at that point. So the farthest distance from spheres boundary to obstacles is \delta * upper_bound. 
+
+ if the optimal has \delta * upper_bound clearance. The algorithm can still find a path.
+
+ % Stop your text
+ \end{document}
