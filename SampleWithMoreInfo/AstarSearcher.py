@@ -8,6 +8,18 @@ import pygame
 from SampleManager import DistSample
 from PriorityQueue import PriorityQueue;
 
+
+class SphereRelationDetector:
+    def __init__( self, spheres ):
+        """Given a list of spheres detect the overlapping realationship between each sphere"""
+        self.mSpheres = spheres;
+        self.mOverlapDict = default( list );
+
+    def construct(self, worldWidth, worldHeight):
+        #line = ;                                           # A line, parallel to Y-asix, that sweep the world space;
+
+
+
 class AstarNode:
 	def __init__(self, x, y, parent, sphere = None):
 		self.mPosition = (x,y);
