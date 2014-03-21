@@ -74,3 +74,14 @@ class RobotArm(object):
         pygame.draw.line( imgSurface, color, base, end1, 3 ); 
         pygame.draw.line( imgSurface, color, end1, end2, 3 );
         return;
+
+    def move(self, start, goal, imgsurf=None):
+        """Given two configurations, we want to move from start --> goal"""
+        d_alpha = goal[0] - start[0];
+        d_phi = goal[1] - start[1];
+        dist = math.sqrt( d_alpha**2, d_phi**2 );
+        num = int( dist/0.02); 
+        for i in range(0,num):
+            ifcollide = self.setParams( start[0]+i*(d_alpha/num),start[1]+i*(d_phi/num));
+            if( imgsurf is not None ):
+                self.render( imgsurf, ifcollide );

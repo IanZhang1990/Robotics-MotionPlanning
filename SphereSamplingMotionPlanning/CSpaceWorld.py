@@ -50,6 +50,12 @@ class CSpaceWorld:
         retPhi   = ((phi-self.mScaledHeight/2)  / float(self.mScaledHeight)) * math.pi * 2;
         return retAlpha, retPhi;
 
+    def map2ScaledSpace( self, alpha, phi ):
+        """Given two angles, alpha, phi, in the unscaled real world, map them to scaled space."""
+        retXcoord = alpha * self.mScaledWidth / (2.0*math.pi) + self.mScaledWidth/2.0;
+        retYcoord = phi  * self.mScaledHeight / (2.0*math.pi) + self.mScaledHeight/2.0;
+        return retXcoord, retYcoord;
+
     def loadCSpace(self, filename):
         """Load C space info from file. Return rendered image"""
 
@@ -71,3 +77,24 @@ class CSpaceWorld:
                 pygame.draw.line( imgSurface, ObstacleColor, (int(info[0]),int(info[1])), (int(info[0]),int(info[1])));
         
         return imgSurface;
+
+    def mapPath2UnscaledSpace(self, start, goal):
+        """Map a path between two configurations in scaled space to unscaled space"""
+        dx = ( goal[0]-start[0] );
+        dy = math.fabs( goal[1]-start[1] );
+        if( dx > 0 and self.mScaledWidth - dx < dx ):
+            dx = -(self.mScaledWidth - dx);
+        elif( dx < 0 and self.mScaledWidth - (-dx) < (-dx)):
+            dx = self.mScaledWidth - (-dx);
+        if( dy > 0 and self.mScaledHeight - dy < dy ):
+            dy = -(self.mScaledHeight - dy);
+        elif( dy < 0 and self.mScaledHeight-(-dy)<(-dy) ):
+            dy = self.mScaledHeight-(-dy);
+
+        goal[0] = start[0] + dx;
+        goal[1] = start[1] + dy;
+
+        start_alpha, start_phi = self.map2UnscaledSpace( start[0], start[1] );
+        goal_alpha, gloal_phi = self.map2UnscaledSpace( goal[0], goal[1] );
+
+        return (start[0], start[1]), (goal[0], goal[1]);

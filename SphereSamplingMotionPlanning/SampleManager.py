@@ -230,21 +230,23 @@ class SampleManager:
         obstColor = ( 200, 0, 100 );
         for samp in self.mDistSamples:
             if samp.mRadius > 0: # Free sample
-                pygame.draw.circle( ImgSurface, freeColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
+                self.drawDistSample( ImgSurface, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), freeColor );
+                #pygame.draw.circle( ImgSurface, freeColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
             else:
-                pygame.draw.circle( ImgSurface, obstColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
+                self.drawDistSample( ImgSurface, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), obstColor );
+                #pygame.draw.circle( ImgSurface, obstColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
 
-    def drawDistSample(self, imgsurf, origin, radius):
+    def drawDistSample(self, imgsurf, origin, radius, color=(0,0,250)):
         if(imgsurf is not None and radius <= 1000000000 and radius > 0):
-                pygame.draw.circle( imgsurf, (0,0,250),(int(origin[0]),int(origin[1])), int(radius), 1 );
-                #if( origin[0]-radius<0 ):
-                #    pygame.draw.circle( imgsurf, (0,0,250),(int(origin[0])+900,int(origin[1])), int(radius), 1 );
-                #if( origin[1]-radius<0 ):
-                #    pygame.draw.circle( imgsurf, (0,0,250),(int(origin[0]),int(origin[1])+900), int(radius), 1 );
-                #if( origin[0]+radius>900 ):
-                #    pygame.draw.circle( imgsurf, (0,0,250),(int(origin[0])-900,int(origin[1])), int(radius), 1 );
-                #if( origin[1]+radius>900 ):
-                #    pygame.draw.circle( imgsurf, (0,0,250),(int(origin[0]),int(origin[1])-900), int(radius), 1 );
+                pygame.draw.circle( imgsurf, color,(int(origin[0]),int(origin[1])), int(radius), 1 );
+                if( origin[0]-radius<0 ):
+                    pygame.draw.circle( imgsurf, color,(int(origin[0])+900,int(origin[1])), int(radius), 1 );
+                if( origin[1]-radius<0 ):
+                    pygame.draw.circle( imgsurf, color,(int(origin[0]),int(origin[1])+900), int(radius), 1 );
+                if( origin[0]+radius>900 ):
+                    pygame.draw.circle( imgsurf, color,(int(origin[0])-900,int(origin[1])), int(radius), 1 );
+                if( origin[1]+radius>900 ):
+                    pygame.draw.circle( imgsurf, color,(int(origin[0]),int(origin[1])-900), int(radius), 1 );
                 pygame.display.update();
 
     def writeSamplesToFile( self, filename ):
