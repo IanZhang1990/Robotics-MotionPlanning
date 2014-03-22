@@ -215,6 +215,13 @@ class AstarSearcher:
 
     def loadPath( self, pathfile ):
         """Given a path file in the disk,  read the path to memory"""
-                
+        pathfile = open( pathfile );
+        path = []
+        for line in pathfile:
+            info = line.split('\t');
+            path.append( (float(info[0]), float(info[1])) );
+            pass;
+        return path;
+
 
 

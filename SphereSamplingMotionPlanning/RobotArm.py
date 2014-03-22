@@ -1,5 +1,6 @@
 import pygame;
 import math;
+from time import sleep
 
 from GameWorld import Sphere;
 
@@ -58,7 +59,7 @@ class RobotArm(object):
             else:
                 return distance2;
 
-    def render(self, imgSurface, ifcollide):
+    def render(self, imgSurface, ifcollide, color=(0,0,180)):
         """Render the robot to the image"""
         alpha = self.mAlpha;
         phi = self.mPhi;
@@ -67,21 +68,26 @@ class RobotArm(object):
         end1 = (base[0]+self.mLen1*math.cos(alpha),    base[1]+self.mLen1*math.sin(alpha));
         end2 = (end1[0]+self.mLen2*math.cos(phi+alpha), end1[1]+self.mLen2*math.sin(phi+alpha));
 
-        color = ( 0,0,180 );
         if( ifcollide ):
-            color = (180, 0, 0)
+            color = (250, 0, 0)
 
-        pygame.draw.line( imgSurface, color, base, end1, 3 ); 
-        pygame.draw.line( imgSurface, color, end1, end2, 3 );
+        for event in pygame.event.get():
+            pass;
+        pygame.draw.line( imgSurface, color, base, end1, 2 ); 
+        pygame.draw.line( imgSurface, color, end1, end2, 2 );
+        pygame.display.update();
         return;
 
-    def move(self, start, goal, imgsurf=None):
+    def move(self, start, goal, beginColor=(0,0,180), endColor=(0,0,180), imgsurf=None):
         """Given two configurations, we want to move from start --> goal"""
         d_alpha = goal[0] - start[0];
         d_phi = goal[1] - start[1];
-        dist = math.sqrt( d_alpha**2, d_phi**2 );
-        num = int( dist/0.02); 
+        dist = math.sqrt( d_alpha**2 + d_phi**2 );
+        num = int( dist/0.08);
+        delta_blue = (endColor[2] - beginColor[2])/num;
         for i in range(0,num):
             ifcollide = self.setParams( start[0]+i*(d_alpha/num),start[1]+i*(d_phi/num));
+            color = (math.fabs(100-(beginColor[0]+delta_blue*i)), (beginColor[1]+delta_blue*i)/1, math.fabs( 180-(beginColor[2]+delta_blue*i)/1));
             if( imgsurf is not None ):
-                self.render( imgsurf, ifcollide );
+                self.render( imgsurf, ifcollide, color );
+                sleep(0.1);

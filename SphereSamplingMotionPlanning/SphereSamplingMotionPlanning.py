@@ -16,7 +16,20 @@ HEIGHT = 768
 g_obstacles = []#[Rect( 40,40, 100, 150 ), Circle( 300, 200, 50 ), Circle( 520, 200, 50 )]
 
 
+def drawLine( start, end, imgsurf, color, maxWidth, maxHeight ):
+    dx = ( end[0]-start[0] );
+    dy = ( end[1]-start[1] );
+    if( dx > 0 and maxWidth - dx < dx ):
+        dx = -(maxWidth - dx);
+    elif( dx < 0 and maxWidth - (-dx) < (-dx)):
+        dx = maxWidth - (-dx);
+    if( dy > 0 and maxHeight - dy < dy ):
+        dy = -(maxHeight - dy);
+    elif( dy < 0 and maxHeight-(-dy)<(-dy) ):
+        dy = maxHeight-(-dy);
 
+    newgoal = (start[0] + dx, start[1] + dy);
+    pygame.draw.line( imgsurf, color, start, newgoal );
 
 def main():
 
@@ -26,12 +39,6 @@ def main():
     robot = RobotArm( (WIDTH/2, HEIGHT/2), obstacles );
 
     cSpaceWorld = CSpaceWorld( robot );
-
-    ######## Set up the pygame stuff
-    DISPLAYSURF = pygame.display.set_mode((WIDTH, HEIGHT));
-    DISPLAYSURF.fill((255,255,255));
-    for sphere in obstacles:
-        sphere.render( DISPLAYSURF, ( 50, 50, 50 ) );
 
     #pygame.image.save( DISPLAYSURF, "PhysicSpace.PNG" )
 
@@ -82,21 +89,40 @@ def main():
     goal_x, goal_y = cSpaceWorld.map2ScaledSpace( goal[0], goal[1] );
     pygame.draw.circle(CSpaceSurface, (0,0,0), (int(start_x),int(start_y)), 5);
     pygame.draw.circle(CSpaceSurface, (0,0,0), (int(goal_x), int(goal_y)), 5);
-    path = astarSearcher.astarSearch( (start_x,start_y), (goal_x, goal_y), cSpaceWorld, CSpaceSurface );
-
-
-
-
+    #path = astarSearcher.astarSearch( (start_x,start_y), (goal_x, goal_y), cSpaceWorld, CSpaceSurface );
+    #astarSearcher.savePath(path);
+    path = astarSearcher.loadPath("path.txt");
     if path is not None:
         for i in range( 1, len(path) ):
-            pygame.draw.line( CSpaceSurface, (0,255,0), path[i-1], path[i] );
+            drawLine( path[i-1], path[i], CSpaceSurface, (0,255,0), cSpaceWorld.mScaledWidth, cSpaceWorld.mScaledHeight )
+            #pygame.draw.line( CSpaceSurface, (0,255,0), path[i-1], path[i] );
             pygame.display.update();
     pygame.image.save(CSpaceSurface, "CSpace.PNG");
 
+
+    ######## Set up the pygame stuff
+    DISPLAYSURF = pygame.display.set_mode((WIDTH, HEIGHT));
+    DISPLAYSURF.fill((255,255,255));
+    for sphere in obstacles:
+        sphere.render( DISPLAYSURF, ( 50, 50, 50 ) );
+
+    ifCollide = robot.setParams( goal[0], goal[1] );
+    robot.render( DISPLAYSURF, True );
+
+    pathLen = len(path);
+    perPathColorChange = 180 / pathLen;
+    pathCount = 0;
+
     if path is not None:
         for i in range(1, len(path)):
-            start, goal = cSpaceWorld.mapPath2UnscaledSpace( path[i-1], path[i] );
-            robot.move( start, goal, DISPLAYSURF );
+            chanel = 255 - perPathColorChange * pathCount;
+            beginColor = ( chanel,chanel, chanel );
+            chanel = 255 - perPathColorChange * (pathCount+1);
+            endColor = (chanel, chanel, chanel);
+            pathCount += 1;
+            print "{0}\t{1}".format( path[i-1], path[i] );
+            start_, goal_ = cSpaceWorld.mapPath2UnscaledSpace( path[i-1], path[i] );
+            robot.move( start_, goal_, beginColor, endColor, DISPLAYSURF );
 
     pygame.image.save( DISPLAYSURF, "PhysicSpace.PNG" );
     return;

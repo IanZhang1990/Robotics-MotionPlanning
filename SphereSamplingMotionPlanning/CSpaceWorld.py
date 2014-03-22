@@ -81,7 +81,7 @@ class CSpaceWorld:
     def mapPath2UnscaledSpace(self, start, goal):
         """Map a path between two configurations in scaled space to unscaled space"""
         dx = ( goal[0]-start[0] );
-        dy = math.fabs( goal[1]-start[1] );
+        dy = ( goal[1]-start[1] );
         if( dx > 0 and self.mScaledWidth - dx < dx ):
             dx = -(self.mScaledWidth - dx);
         elif( dx < 0 and self.mScaledWidth - (-dx) < (-dx)):
@@ -91,10 +91,9 @@ class CSpaceWorld:
         elif( dy < 0 and self.mScaledHeight-(-dy)<(-dy) ):
             dy = self.mScaledHeight-(-dy);
 
-        goal[0] = start[0] + dx;
-        goal[1] = start[1] + dy;
+        newgoal = (start[0] + dx, start[1] + dy);
 
         start_alpha, start_phi = self.map2UnscaledSpace( start[0], start[1] );
-        goal_alpha, gloal_phi = self.map2UnscaledSpace( goal[0], goal[1] );
+        goal_alpha, gloal_phi = self.map2UnscaledSpace( newgoal[0], newgoal[1] );
 
-        return (start[0], start[1]), (goal[0], goal[1]);
+        return (start_alpha, start_phi), (goal_alpha, gloal_phi);
