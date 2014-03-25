@@ -22,6 +22,7 @@
     <Content Include="SamplingImage.PNG" />
     <Content Include="World (copy).PNG" />
     <Content Include="World.PNG" />
+    <Compile Include="Astar2.py" />
     <Compile Include="AstarSearcher.py" />
     <Compile Include="GraphSpanner.py" />
     <Compile Include="multi-Thread.py" />

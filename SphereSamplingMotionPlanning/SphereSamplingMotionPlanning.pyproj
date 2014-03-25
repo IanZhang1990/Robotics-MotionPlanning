@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ea2b0bba-ed32-4865-9409-08a25ff11651}</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>SphereSamplingMotionPlanning.py</StartupFile>
+    <StartupFile>Astar2.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,6 +22,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Astar2.py" />
+    <Compile Include="AstarPlus.py" />
     <Compile Include="AstarSearcher.py" />
     <Compile Include="CollisionManager.py" />
     <Compile Include="GameWorld.py" />
