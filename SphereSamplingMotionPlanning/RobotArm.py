@@ -84,6 +84,8 @@ class RobotArm(object):
         d_phi = goal[1] - start[1];
         dist = math.sqrt( d_alpha**2 + d_phi**2 );
         num = int( dist/0.08);
+        if num == 0:
+            num = 1;
         delta_blue = (endColor[2] - beginColor[2])/num;
         for i in range(0,num):
             ifcollide = self.setParams( start[0]+i*(d_alpha/num),start[1]+i*(d_phi/num));

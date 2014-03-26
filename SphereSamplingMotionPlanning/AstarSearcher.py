@@ -138,7 +138,8 @@ class AstarSearcher:
 
         ownerShpere = self.findOwnerSphere( start[0],start[1], cSpace.mScaledWidth, cSpace.mScaledHeight);
         startNode = AstarNode( start[0], start[1], None, ownerShpere );
-        openList.push( startNode.mPosition,  0 );
+        start_mF =  self.distance( start, goal, cSpace.mScaledWidth, cSpace.mScaledHeight );
+        openList.push( startNode.mPosition,  start_mF );
         sphereDict[str(startNode.mPosition)] = ownerShpere;
         GDict[str(startNode.mPosition)] = 0;
 
@@ -155,37 +156,43 @@ class AstarSearcher:
             #openList.remove_task( current );
             currOwnerSphere = sphereDict[str(current)];
             successors = self.getSphereBoundaries(currOwnerSphere, goal, cSpace.mScaledWidth, cSpace.mScaledHeight);
+            closedList.push( current, curr_mF );
 
             for suc in successors:
                 sucSamp = suc[0];
-                #if( imgsurface is not None ):
-                #    pygame.draw.circle( imgsurface, (255,0,0), (int(sucSamp[0]), int(sucSamp[1])), 2, 1 );
-                #    pygame.display.update();
-                    #sleep(0.01);
-
+                if( closedList.find( sucSamp ) ):
+                    continue;
                 sucOwnerSphere = suc[1];
                 sucNode = AstarNode( sucSamp[0], sucSamp[1], current, sucOwnerSphere )
                 sphereDict[str(sucNode.mPosition)] = sucOwnerSphere;
+
                 #if sucSamp == goal:
-                #    return backtrace( sucNode );
+                #    parentDict[str(sucNode.mPosition)] = current;
+                #    return backtrace( sucSamp, parentDict );
                 sucNode.mG = GDict[str(current)] + self.distance( sucSamp, current, cSpace.mScaledWidth, cSpace.mScaledHeight );
-                GDict[str(sucNode.mPosition)] = sucNode.mG;
-                sucNode_mH = self.distance( sucSamp, goal, cSpace.mScaledWidth, cSpace.mScaledHeight );
-                sucNode_mF = sucNode.mG + sucNode_mH;
 
 
                 sameOpen = openList.find( sucNode.mPosition );
-                if( sameOpen is not None and sameOpen[0] <= sucNode_mF):
-                    continue;
-                else:
-                    sameClose = closedList.find( sucNode.mPosition );
-                    if( sameClose is not None and sameClose[0] <= sucNode_mF ):
-                        continue;
-                    else:
-                        openList.push( sucNode.mPosition, sucNode_mF );
-                        parentDict[str(sucNode.mPosition)] = current;
+                if( sameOpen is None or GDict[str(sucNode.mPosition)] > sucNode.mG):
+                    parentDict[str(sucNode.mPosition)] = sucNode.mParentNode;
+                    GDict[str(sucNode.mPosition)] = sucNode.mG;
+                    sucNode_mH = self.distance( sucSamp, goal, cSpace.mScaledWidth, cSpace.mScaledHeight );
+                    sucNode_mF = sucNode.mG + sucNode_mH;
+                    openList.push( sucNode.mPosition, sucNode_mF );
+                #else:
+                #    sameClose = closedList.find( sucNode.mPosition );
+                #    if( sameClose is not None and sameClose[0] <= sucNode_mF ):
+                #        print "Bad!"
+                #        #closedList.remove_task( sucNode.mPosition );
+                #    else:
+                #        openList.push( sucNode.mPosition, sucNode_mF );
+                        
+                #if(sameOpen is not None and sameOpen[0] < sucNode_mF):
+                #    continue;
+                #else:
+                #    openList.push( sucNode.mPosition, sucNode_mF );
+                #    parentDict[str(sucNode.mPosition)] = current;
                 pass
-            closedList.push( current, curr_mF );
             pass
         return None;
 

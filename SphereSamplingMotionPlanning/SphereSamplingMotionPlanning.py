@@ -85,7 +85,7 @@ def main():
 
     ######## Let us find a path
     astarSearcher = AstarSearcher( sampleManager.mDistSamples, cSpaceWorld.mScaledWidth, cSpaceWorld.mScaledHeight );
-    start = ( 0, -math.pi/6 ); goal = (math.pi/3, math.pi/1.5);
+    start = ( 0, -math.pi/6 ); goal = (-math.pi/1,-math.pi/2.5);
     start_x, start_y = cSpaceWorld.map2ScaledSpace( start[0], start[1] );
     goal_x, goal_y = cSpaceWorld.map2ScaledSpace( goal[0], goal[1] );
     pygame.draw.circle(CSpaceSurface, (0,0,0), (int(start_x),int(start_y)), 5);

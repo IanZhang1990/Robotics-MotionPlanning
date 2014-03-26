@@ -45,20 +45,29 @@ class PriorityQueue:
     def count(self):
         return len(self.mPriQue);
 
-"""
-pq = PriorityQueue()
 
-pq.push(4,4);
-pq.push(3,3);
-pq.push(2,2);
-pq.push(6,6);
-pq.push(7,7);
-pq.push(9,9);
+#pq = PriorityQueue()
 
-print pq.pop()
-print pq.pop()
-print pq.pop()
-print pq.pop()
-print pq.pop()
-print pq.pop()
-print pq.pop()"""
+#pq.push(4,4);
+#pq.push(4,5);
+#pq.push(5,5);
+#pq.push(3,3);
+#pq.push(2,2);
+#pq.push(6,6);
+#pq.push(7,7);
+#pq.push(9,9);
+
+#pq.remove_task( 6 );
+#task = pq.find( 4 );
+#print task
+
+
+#print pq.pop()
+#print pq.count();
+#print pq.pop()
+#print pq.count();
+#print pq.pop()
+#print pq.count();
+#print pq.pop()
+#print pq.count();
+#print pq.pop()
