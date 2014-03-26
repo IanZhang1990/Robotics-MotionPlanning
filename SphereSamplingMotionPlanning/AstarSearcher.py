@@ -119,6 +119,76 @@ class AstarSearcher:
 
         return None;
 
+    def astarSearch_Q( self, start, goal, cSpace, imgsurface=None ):
+        def backtrace( node, pardict ):
+            path = []
+            path.append( node )
+            while( pardict.has_key(str(node))):
+                path.append( pardict[str(node)] );
+                node = pardict[str(node)];
+            path.reverse();
+            return path;
+
+        openList = PriorityQueue();
+        closedList = PriorityQueue();
+
+        parentDict = defaultdict();
+        sphereDict = defaultdict();
+        GDict = defaultdict();
+
+        ownerShpere = self.findOwnerSphere( start[0],start[1], cSpace.mScaledWidth, cSpace.mScaledHeight);
+        startNode = AstarNode( start[0], start[1], None, ownerShpere );
+        openList.push( startNode.mPosition,  0 );
+        sphereDict[str(startNode.mPosition)] = ownerShpere;
+        GDict[str(startNode.mPosition)] = 0;
+
+        while( not openList.isEmpty() ):
+            current, curr_mF = openList.pop();
+            if current == goal:
+                return backtrace( current, parentDict );
+            if( imgsurface is not None ):
+                for event in pygame.event.get():
+                    pass;
+                pygame.draw.circle( imgsurface, (0,255,0), (int(current[0]), int(current[1])), 2 );
+                pygame.display.update();
+
+            #openList.remove_task( current );
+            currOwnerSphere = sphereDict[str(current)];
+            successors = self.getSphereBoundaries(currOwnerSphere, goal, cSpace.mScaledWidth, cSpace.mScaledHeight);
+
+            for suc in successors:
+                sucSamp = suc[0];
+                #if( imgsurface is not None ):
+                #    pygame.draw.circle( imgsurface, (255,0,0), (int(sucSamp[0]), int(sucSamp[1])), 2, 1 );
+                #    pygame.display.update();
+                    #sleep(0.01);
+
+                sucOwnerSphere = suc[1];
+                sucNode = AstarNode( sucSamp[0], sucSamp[1], current, sucOwnerSphere )
+                sphereDict[str(sucNode.mPosition)] = sucOwnerSphere;
+                #if sucSamp == goal:
+                #    return backtrace( sucNode );
+                sucNode.mG = GDict[str(current)] + self.distance( sucSamp, current, cSpace.mScaledWidth, cSpace.mScaledHeight );
+                GDict[str(sucNode.mPosition)] = sucNode.mG;
+                sucNode_mH = self.distance( sucSamp, goal, cSpace.mScaledWidth, cSpace.mScaledHeight );
+                sucNode_mF = sucNode.mG + sucNode_mH;
+
+
+                sameOpen = openList.find( sucNode.mPosition );
+                if( sameOpen is not None and sameOpen[0] <= sucNode_mF):
+                    continue;
+                else:
+                    sameClose = closedList.find( sucNode.mPosition );
+                    if( sameClose is not None and sameClose[0] <= sucNode_mF ):
+                        continue;
+                    else:
+                        openList.push( sucNode.mPosition, sucNode_mF );
+                        parentDict[str(sucNode.mPosition)] = current;
+                pass
+            closedList.push( current, curr_mF );
+            pass
+        return None;
+
     def astarSearch( self, start, goal, cSpace, imgsurface=None ):
         """Given a start and goal point, search for an optimal path connecting them"""
 

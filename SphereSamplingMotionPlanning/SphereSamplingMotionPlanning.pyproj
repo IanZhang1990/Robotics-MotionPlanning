@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ea2b0bba-ed32-4865-9409-08a25ff11651}</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Astar2.py</StartupFile>
+    <StartupFile>SphereSamplingMotionPlanning.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

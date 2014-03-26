@@ -1,6 +1,7 @@
 import pygame, sys, os, datetime
 from pygame.locals import *
 
+
 from GameWorld import *
 from CSpaceWorld import *
 from RobotArm import *
@@ -89,9 +90,13 @@ def main():
     goal_x, goal_y = cSpaceWorld.map2ScaledSpace( goal[0], goal[1] );
     pygame.draw.circle(CSpaceSurface, (0,0,0), (int(start_x),int(start_y)), 5);
     pygame.draw.circle(CSpaceSurface, (0,0,0), (int(goal_x), int(goal_y)), 5);
-    #path = astarSearcher.astarSearch( (start_x,start_y), (goal_x, goal_y), cSpaceWorld, CSpaceSurface );
-    #astarSearcher.savePath(path);
-    path = astarSearcher.loadPath("path.txt");
+
+    before = datetime.datetime.now();
+    path = astarSearcher.astarSearch_Q( (start_x,start_y), (goal_x, goal_y), cSpaceWorld, CSpaceSurface );
+    now = datetime.datetime.now();
+    print now - before;
+    astarSearcher.savePath(path);
+    #path = astarSearcher.loadPath("path.txt");
     if path is not None:
         for i in range( 1, len(path) ):
             drawLine( path[i-1], path[i], CSpaceSurface, (0,255,0), cSpaceWorld.mScaledWidth, cSpaceWorld.mScaledHeight )

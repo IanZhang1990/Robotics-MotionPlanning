@@ -29,7 +29,8 @@ class AstarPlus(object):
 
                 dx = sphere.mSample[0] - other.mSample[0];
                 dy = sphere.mSample[1] - other.mSample[1];
-                if( math.sqrt( dx**2+dy**2 ) <= (sphere.mRadius+other.mRadius) ):
+                dist = math.sqrt( dx**2+dy**2 );
+                if( dist < (sphere.mRadius+other.mRadius) ):
                     # Overlap! Record it in the dictionary
                     self.mOverlapDict[sphere] += [ other ];
 
@@ -78,15 +79,22 @@ class AstarPlus(object):
             current = min(openList, key=lambda inst:inst.mF);
             openList.remove( current );
             if current.mSphere == goalSphere:
-                    return backtrace( current );
+                return backtrace( current );
+            for event in pygame.event.get():
+                pass;
+            pygame.draw.circle( imgsurface, (250,250,0), (int(current.mSphere.mSample[0]),int(current.mSphere.mSample[1])), int(current.mSphere.mRadius), 2);
+            pygame.display.update();
             successors = self.mOverlapDict[current.mSphere];
             #print "current: {0} \towener Sphere: {1}".format(current.mPosition, currOwnerSphere.mSample);
             #print current.mPosition;
             for suc in successors:
                 sucNode = Astar2Node( suc, current )
-                sucNode.mG = current.mG + self.distance( suc.mSample, current.mSphere.mSample ) - current.mSphere.mRadius + suc.mRadius;
-                sucNode.mH = self.distance( suc.mSample, goalSphere.mSample ) - suc.mRadius;
+                sucNode.mG = current.mG + self.distance( suc.mSample, current.mSphere.mSample );
+                sucNode.mH = self.distance( suc.mSample, goal ) + suc.mRadius;
                 sucNode.mF = sucNode.mG + sucNode.mH;
+                print "{0}\t{1}\t{2}".format(sucNode.mG,sucNode.mH,sucNode.mF);
+
+
 
                 same = filter( lambda inst: inst.mSphere== suc , openList)
 
