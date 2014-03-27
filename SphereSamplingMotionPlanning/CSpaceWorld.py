@@ -18,29 +18,33 @@ class CSpaceWorld:
         self.mScaledHeight = 900;
         self.mCollisionMgr = CollisionManager( robot );
 
-    def renderCSpace( self ):
-
+    def renderCSpace( self, ifsave = True ):
         imgSurface = pygame.display.set_mode((self.mScaledHeight, self.mScaledWidth));
         imgSurface.fill((255,255,255));
         ObstacleColor = ( 50, 50, 50 );
         obstaclePoints = [];
 
+        inObstacle = 0;
+
         # Randomly sample and draw in the image
-        for i in range( 0, 300000 ):
+        for i in range( 0, 200000 ):
             scaledAlpha = random.randint( 0, self.mScaledWidth );
             scaledPhi = random.randint( 0, self.mScaledHeight );
             alpha, phi = self.map2UnscaledSpace( scaledAlpha, scaledPhi );
             collide = self.mCollisionMgr.ifCollide( (alpha, phi) );
             if collide:
+                inObstacle += 1;
                 obstaclePoints.append( (scaledAlpha, scaledPhi) );
                 pygame.draw.line( imgSurface, ObstacleColor, (scaledAlpha, scaledPhi), (scaledAlpha, scaledPhi));
                 
-                
+        print "{0} / {1} obstacles".format( inObstacle, 200000 );
+
         # Save Data
-        worldFile = open( "CSpace.txt", 'w' );
-        worldFile.write( "WIDTH\t{0}\nHEIGHT\t{1}\n".format( self.mScaledWidth, self.mScaledHeight ) );
-        for pair in obstaclePoints:
-            worldFile.write( "{0}\t{1}\n".format(pair[0], pair[1]) );
+        if ifsave:
+            worldFile = open( "CSpace.txt", 'w' );
+            worldFile.write( "WIDTH\t{0}\nHEIGHT\t{1}\n".format( self.mScaledWidth, self.mScaledHeight ) );
+            for pair in obstaclePoints:
+                worldFile.write( "{0}\t{1}\n".format(pair[0], pair[1]) );
 
         return imgSurface;
             
@@ -64,7 +68,9 @@ class CSpaceWorld:
         obstaclePoints = [];
 
         CSpaceFile = open(filename, 'r');
+        lineNum = 0;
         for line in CSpaceFile:
+            lineNum += 1;
             info = line.split('\t');
             if(info[0]=="WIDTH"):
                 self.mScaledWidth = int(info[1]);
@@ -76,6 +82,8 @@ class CSpaceWorld:
                     imgSurface.fill((255,255,255));
                 pygame.draw.line( imgSurface, ObstacleColor, (int(info[0]),int(info[1])), (int(info[0]),int(info[1])));
         
+        print "{0} / {1} obstacles".format( lineNum, 200000 );
+
         return imgSurface;
 
     def mapPath2UnscaledSpace(self, start, goal):

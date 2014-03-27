@@ -171,7 +171,6 @@ class AstarSearcher:
                 #    return backtrace( sucSamp, parentDict );
                 sucNode.mG = GDict[str(current)] + self.distance( sucSamp, current, cSpace.mScaledWidth, cSpace.mScaledHeight );
 
-
                 sameOpen = openList.find( sucNode.mPosition );
                 if( sameOpen is None or GDict[str(sucNode.mPosition)] > sucNode.mG):
                     parentDict[str(sucNode.mPosition)] = sucNode.mParentNode;
@@ -179,19 +178,6 @@ class AstarSearcher:
                     sucNode_mH = self.distance( sucSamp, goal, cSpace.mScaledWidth, cSpace.mScaledHeight );
                     sucNode_mF = sucNode.mG + sucNode_mH;
                     openList.push( sucNode.mPosition, sucNode_mF );
-                #else:
-                #    sameClose = closedList.find( sucNode.mPosition );
-                #    if( sameClose is not None and sameClose[0] <= sucNode_mF ):
-                #        print "Bad!"
-                #        #closedList.remove_task( sucNode.mPosition );
-                #    else:
-                #        openList.push( sucNode.mPosition, sucNode_mF );
-                        
-                #if(sameOpen is not None and sameOpen[0] < sucNode_mF):
-                #    continue;
-                #else:
-                #    openList.push( sucNode.mPosition, sucNode_mF );
-                #    parentDict[str(sucNode.mPosition)] = current;
                 pass
             pass
         return None;

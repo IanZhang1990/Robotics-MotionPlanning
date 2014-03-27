@@ -188,7 +188,7 @@ class SampleManager:
                 boundaryQueue.put( bndConfig );				# put the boundary config to the queue.
 
             while( not boundaryQueue.empty() ):
-                print "Size of dist samples {0}".format( len( self.mDistSamples ) );
+                #print "Size of dist samples {0}".format( len( self.mDistSamples ) );
      #           if( len(self.mDistSamples) % 100 == 0 ):
                     #randFreeSamp = self.getARandomFreeSample( num );
                     #if( randFreeSamp == None ):
@@ -201,8 +201,10 @@ class SampleManager:
                     #	boundaryQueue.put( bndConfig );				# put the boundary config to the queue.
 
 
-                bnd = boundaryQueue.get();							# get a new boundary 
+                bnd = boundaryQueue.get();							# get a new boundary  
                 newSamp = True;
+                if self.mCollisionMgr.ifCollide((bnd[0], bnd[1])):
+                    continue;
                 for sample in self.mDistSamples:
                     if sample.isInside( (bnd[0], bnd[1]), self.mCSpace.mScaledWidth, self.mCSpace.mScaledHeight ): #####################################################################################================================ Locally Sensetive Hash
                         # check if within any spheres, not including the sphere that the boundary config belongs to.
@@ -213,11 +215,14 @@ class SampleManager:
                     # randomly shoot rays to get the nearest distance to obstacles
                     rayShooter = RayShooter( bnd[0], bnd[1], self.mCollisionMgr, self.mCSpace );	# Shot ray
                     dist = rayShooter.randShoot(72);					# Get the distance to obstacles
-                    if math.fabs(dist) >= 1.0:							# if not too close to obstacles
+                    if (dist) >= 2.0:	    					# if not too close to obstacles
                         newDistSamp = DistSample(bnd[0], bnd[1], dist)	# construct a new dist sample
                         self.mDistSamples.append( newDistSamp );				# add to our dist sample set
                         self.drawDistSample( imgSurface, (newDistSamp.mSample[0], newDistSamp.mSample[1]), newDistSamp.mRadius );
                         bounds = newDistSamp.getBoundaryConfigs(self.mCSpace.mScaledWidth, self.mCSpace.mScaledHeight);		# get the boundary configs
+                        #for boundary in boundaryQueue:
+                        #    if newDistSamp.isInside( (boundary[0],boundary[1]), self.mCSpace.mScaledWidth, self.mCSpace.mScaledHeight ):
+                        #        pass;
                         for bndConfig in bounds:
                             #if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
                             bndSphDict[bndConfig] = newDistSamp;
@@ -247,6 +252,9 @@ class SampleManager:
                     pygame.draw.circle( imgsurf, color,(int(origin[0])-900,int(origin[1])), int(radius), 1 );
                 if( origin[1]+radius>900 ):
                     pygame.draw.circle( imgsurf, color,(int(origin[0]),int(origin[1])-900), int(radius), 1 );
+
+                for event in pygame.event.get():
+                    pass;
                 pygame.display.update();
 
     def writeSamplesToFile( self, filename ):

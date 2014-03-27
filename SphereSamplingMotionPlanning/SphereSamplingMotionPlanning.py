@@ -36,7 +36,7 @@ def main():
 
     ######## Set up the robot stuff
     #obstacles = [ Sphere( 550, 300, 50 ), Sphere( 550, 500, 30 ),Sphere( 850, 500, 50 ), Sphere( 900, 300, 30 ), Sphere( 790, 450, 20 ) ];
-    obstacles = [ Sphere( 550, 300, 50 ),Sphere( 850, 500, 50 ),  Sphere( 790, 450, 20 ) ];
+    obstacles = [ Sphere( 550, 300, 50 ), Sphere( 550, 500, 60 ), Sphere( 850, 450, 70 ), Sphere( 720, 340, 40 ), Sphere( 710, 440, 35 ) ];
     robot = RobotArm( (WIDTH/2, HEIGHT/2), obstacles );
 
     cSpaceWorld = CSpaceWorld( robot );
@@ -45,7 +45,7 @@ def main():
 
     ####### Randomly sample the world, show it in the image
     #DISPLAYSURF.fill((255,255,255));
-    #CSpaceSurface = cSpaceWorld.renderCSpace();
+    #CSpaceSurface = cSpaceWorld.renderCSpace(False);
     CSpaceSurface = cSpaceWorld.loadCSpace( "CSpace.txt" );
     #pygame.image.save(CSpaceSurface, "CSpace.PNG");
 
@@ -80,8 +80,8 @@ def main():
     #sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
     sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
     sampleManager.renderAllDistSamples(CSpaceSurface);
-
-
+    pygame.image.save(CSpaceSurface, "CSpace.PNG");
+    return;
 
     ######## Let us find a path
     astarSearcher = AstarSearcher( sampleManager.mDistSamples, cSpaceWorld.mScaledWidth, cSpaceWorld.mScaledHeight );
@@ -125,7 +125,7 @@ def main():
             chanel = 255 - perPathColorChange * (pathCount+1);
             endColor = (chanel, chanel, chanel);
             pathCount += 1;
-            print "{0}\t{1}".format( path[i-1], path[i] );
+            #print "{0}\t{1}".format( path[i-1], path[i] );
             start_, goal_ = cSpaceWorld.mapPath2UnscaledSpace( path[i-1], path[i] );
             robot.move( start_, goal_, beginColor, endColor, DISPLAYSURF );
 
