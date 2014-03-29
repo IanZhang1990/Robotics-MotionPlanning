@@ -37,27 +37,17 @@ class RobotArm(object):
 
     def dist(self, point, end1, end2):
         """Distance from one point to a line ( end1 --> end2 )"""
-        x0 = point[0]; y0 = point[1];
-        x1 = end1[0]; y1 = end1[1];
-        x2 = end2[0]; y2 = end2[1];
-
-        # line aX + bY + c = 0;
-        a = y2 - y1; b = x1 - x2; c = x2*y1-x1*y2;
-        distance = (math.fabs(a*x0+b*y0+c)) / math.sqrt(math.pow(a, 2)+math.pow(b,2));
+        # Ref: http://blog.csdn.net/freezhanacmore/article/details/9568873
+        ab = ( end2[0] - end1[0], end2[1] - end1[1]);
+        ac = ( point[0]- end1[0], point[1]-end1[1] );
+        bc = ( point[0]- end2[0], point[1]-end2[1] )
         
-        if b == 0:
-            b = 0.000000001;
-        direction = -a/b;
-        intersect = ( point[0] + distance * a/b, point[1] + distance * a/b );
-        if( end1[0]<intersect[0] and intersect[0]<end2[0] and end1[1]<intersect[1] and intersect[1]<end2[1] ):
-            return distance;
+        if( ab[0]*ac[0]+ab[1]*ac[1] < 0 ):
+            return math.sqrt( ac[0]**2 + ac[1]**2 );
+        elif( ab[0]*bc[0]+ab[1]*bc[1] > 0 ):
+            return math.sqrt( bc[0]**2 + bc[1]**2 );
         else:
-            distance1 = math.sqrt(math.pow(y0-y1,2) + math.pow(x0-x1,2));
-            distance2 = math.sqrt(math.pow(y0-y2,2) + math.pow(x0-x2,2));
-            if distance1 < distance2:
-                return distance1;
-            else:
-                return distance2;
+            return math.fabs( ab[0]*ac[1]-ab[1]*ac[0] ) / math.sqrt( ab[0]**2 + ab[1]**2 );
 
     def render(self, imgSurface, ifcollide, color=(0,0,180)):
         """Render the robot to the image"""
