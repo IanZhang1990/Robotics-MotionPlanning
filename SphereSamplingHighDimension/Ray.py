@@ -2,80 +2,103 @@
 
 import pygame, sys, os
 import math
+from random import randint
 
 
 class Ray:
-    def __init__( self, x, y, theta ):
-        """@param x: 		ray origin x position
-         @param y: 		ray origin y position
-         @param theta: 	ray direction angle ( compare to level )
+    def __init__( self, pos, dir ):
+        """
+         @param pos: 		ray origin position.
+         @param dir:     	ray direction.
          """
-        self.mOrigin = (x, y);
-        self.mTheta = theta;
-        self.mEnd = (-1,-1)
-        
-    def getOrigin(self):
-        return (self.mOrigin[0], self.mOrigin[1])
+        self.mOrigin = pos;
+        self.mDirect = self.__norm__(dir);
+        self.mEnd = None;
     
-    def getTheta(self):
-        return self.mTheta;
+    def __norm__(self, vector):
+        """Normalize a vector"""
+        length = 0;
+        normVect = copy(vector);
+        for i in range( 0, len(vector) ):
+            length += vector[i]**2;
+        length = math.sqrt( length );
+
+        for i in range( 0, len(vector) ):
+            normVect[i] = vector[i]/length;
+
+        return normVect;
+
+    def getOrigin(self):
+        return self.mOrigin;
+    
+    def getDirection(self):
+        return self.mDirect;
     
     def shoot(self, collisionMgr, cSpace):
         
         stepLength = 1;
         
-        init_alpha, init_phi = cSpace.map2UnscaledSpace( self.mOrigin[0], self.mOrigin[1] );
-        isInitiallyInside = collisionMgr.ifCollide( (init_alpha, init_phi) );
+        initAngle = cSpace.map2UnscaledSpace( self.mOrigin );
+        isInitiallyInside = collisionMgr.ifCollide( initAngle );
+        if( isInitiallyInside ):
+            return None;
         
-        nextCheckPoint = ( (self.mOrigin[0] + stepLength*math.cos( self.mTheta )), self.mOrigin[1]+stepLength*math.sin( self.mTheta ))
-        alpha, phi = cSpace.map2UnscaledSpace( nextCheckPoint[0], nextCheckPoint[1] );
-        nextCheckPointInCSpace = (alpha, phi);
+        nextCheckPoint = copy(self.mOrigin);
+        for i in range( 0, len(nextCheckPoint) ):
+            nextCheckPoint[i] = self.mOrigin[i] + self.mDirect[i]*stepLength;
+
+        nextCheckPointInCSpace = cSpace.map2UnscaledSpace( nextCheckPoint );
         
         i = 1;
         while( isInitiallyInside == collisionMgr.ifCollide( nextCheckPointInCSpace )):
-            if( math.fabs(nextCheckPoint[0]-self.mOrigin[0]) >= 900 or math.fabs(nextCheckPoint[1]-self.mOrigin[1]) >= 900 ):
-                self.mEnd = nextCheckPoint;
-                return 1000000000000000000000;
+            for i in range(0, len(self.mOrigin)):
+                if( math.fabs( nextCheckPoint[i]-self.mOrigin[i] ) > 1000 ):
+                    return 10000000000000000000;
+                pass;
+            
             i+=1;
-            nextCheckPoint = [ self.mOrigin[0] + stepLength*i*math.cos( self.mTheta ), self.mOrigin[1]+stepLength*i*math.sin( self.mTheta ) ];
-            alpha, phi = cSpace.map2UnscaledSpace( nextCheckPoint[0], nextCheckPoint[1] );
-            nextCheckPointInCSpace = (alpha, phi);
+            for i in range( 0, len(nextCheckPoint) ):
+                nextCheckPoint[i] = self.mOrigin[i] + self.mDirect[i]*stepLength*i;
+            nextCheckPointInCSpace = cSpace.map2UnscaledSpace( nextCheckPoint );
             pass;
         
-        self.mEnd = ( nextCheckPoint[0], nextCheckPoint[1] )
-        dx = nextCheckPoint[0] - self.mOrigin[0];
-        dy = nextCheckPoint[1] - self.mOrigin[1];
-        dist = math.sqrt( dx**2 + dy**2 );
+        self.mEnd = nextCheckPoint
+
+        dist = 0;
+        for i in range( 0, len(nextCheckPoint) ):
+            dist += nextCheckPoint[i]**2;
+        dist = math.sqrt( dist );
         
         if isInitiallyInside:
             return dist*(-1);
         else:
             return dist;
 
-    def drawRay( self, imgSurf ):
-        pygame.draw.line( imgSurf, (0,250,0), self.mOrigin, self.mEnd, 1 );
-
 
 class RayShooter:
     """Class to manager ray operations"""
-    def __init__( self, x, y, collisionManager, cSpace ):
-        self.mOrigin = [x,y];
+    def __init__( self, origin, collisionManager, cSpacem ):
+        """
+         @param origin: origin position. We will shoot random rays from this position.
+         """
+        self.mOrigin = origin;
         self.mCollisionMgr = collisionManager;
         self.mCSpace = cSpace;
         self.mOriginInObst = collisionManager.ifCollide( self.mOrigin );
 
     def randShoot(self, num):
         """Randomly shoot rays from one origin.
-        @param num: number of rays you want to shoot from one point
+         @param num: number of rays you want to shoot from one point
 		"""
-        dlt_ang = (2*math.pi) / float(num); # increment of angle;
-        
         minDist = 1000000000000.0;
         chosenRay = None;
+        dim = len(self.mOrigin);
 
         for i in range(1, num+1):
-            theta = dlt_ang * i;
-            ray = Ray( self.mOrigin[0],self.mOrigin[1], theta );
+            dir = [0] * dim;
+            for i in range(0, dim ):
+                dir[i] = randint( 1, 1000 );
+            ray = Ray( self.mOrigin, dir );
             dist = ray.shoot(self.mCollisionMgr, self.mCSpace);
             if math.fabs(dist) < math.fabs(minDist):
                 minDist = dist;

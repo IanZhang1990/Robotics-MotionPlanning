@@ -22,8 +22,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AstarSearcher.py" />
     <Compile Include="CollisionManager.py" />
+    <Compile Include="CSpaceWorld.py" />
+    <Compile Include="PriorityQueue.py" />
+    <Compile Include="Ray.py" />
     <Compile Include="RobotArm.py" />
+    <Compile Include="SampleManager.py" />
     <Compile Include="SphereSamplingHighDimension.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
