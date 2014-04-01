@@ -174,8 +174,6 @@ class SampleManager:
 
             while( len( boundaryQueue) != 0 ):
                 bnd = boundaryQueue[0];							# get a new boundary
-                if len(self.mDistSamples) == 100:
-                    return;
                 del boundaryQueue[0]
                 newSamp = True;
                 if self.mCollisionMgr.ifCollide( bnd ):
@@ -196,6 +194,8 @@ class SampleManager:
                         print "{0}  R: {1}".format( bnd, dist );
                         self.mDistSamples.append( newDistSamp );				# add to our dist sample set
                         bounds = newDistSamp.getBoundaryConfigs(maxDimLens);		# get the boundary configs
+                        if len(self.mDistSamples) == 100:
+                            return;
                         for bndConfig in bounds:
                             #if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
                             bndSphDict[str(bndConfig)] = newDistSamp;
