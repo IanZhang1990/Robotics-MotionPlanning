@@ -202,7 +202,8 @@ class SampleManager:
                             boundaryQueue.append( bndConfig );				# put the boundary config to the queue.
                         
                         ###########################=========================================================
-                        if len(self.mDistSamples)%4 == 0:
+                        if len(self.mDistSamples)%10 == 0:
+                            print "------------ FRESH -------------"
                             for sphere in self.mDistSamples:
                                 boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]
                         ###########################=========================================================
