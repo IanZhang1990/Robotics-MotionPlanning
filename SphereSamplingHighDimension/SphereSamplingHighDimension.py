@@ -2,10 +2,10 @@ import pygame, sys, os, datetime
 from pygame.locals import *
 
 
-#from CSpaceWorld import *
+from CSpaceWorld import *
 from RobotArm import *
-#from SampleManager import *
-#from AstarSearcher import *
+from SampleManager import *
+from AstarSearcher import *
 
 pygame.init()
 WIDTH = 1366
@@ -36,18 +36,25 @@ def main():
     ######## Set up the robot stuff
     #obstacles = [ Sphere( 550, 300, 50 ), Sphere( 550, 500, 30 ),Sphere( 850, 500, 50 ), Sphere( 900, 300, 30 ), Sphere( 790, 450, 20 ) ];
     obstacles = [ Sphere( 550, 300, 50 ), Sphere( 550, 500, 60 ), Sphere( 850, 450, 70 ), Sphere( 720, 340, 40 ) ];
-    lens = [ 100,100,100,100 ];
+    lens = [ 100,100,100 ];
     robot = RobotArm( (WIDTH/2, HEIGHT/2), obstacles, lens );
+    maxDimLens = [ 1000, 1000, 1000 ];
 
-    #cSpaceWorld = CSpaceWorld( robot );
+    cSpaceWorld = CSpaceWorld( robot, maxDimLens );
+
+    ######## Now, let's begin to sample spheres in the scaled-CSpace.
+    sampleManager = SampleManager( cSpaceWorld );
+    sampleManager.distSampleOneThread(20, maxDimLens);
+    sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
+    #sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
 
     #pygame.image.save( DISPLAYSURF, "PhysicSpace.PNG" )
-
+    """
     ####### Randomly sample the world, show it in the image
     DISPLAYSURF = pygame.display.set_mode((WIDTH, HEIGHT));
 
     ######## For testing only
-    angles = [0,0,0,0];
+    angles = [0,0,0];
 
     while True:
         DISPLAYSURF.fill((255,255,255))
@@ -68,6 +75,7 @@ def main():
 
         sleep( 0.01 );
         pass
+    """
     return;
 
 if __name__ == "__main__":

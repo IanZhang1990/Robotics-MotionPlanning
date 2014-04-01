@@ -2,6 +2,7 @@
 
 import pygame, sys, os
 import math
+from copy import copy;
 from random import randint
 
 
@@ -36,7 +37,7 @@ class Ray:
     
     def shoot(self, collisionMgr, cSpace):
         
-        stepLength = 1;
+        stepLength = 3;
         
         initAngle = cSpace.map2UnscaledSpace( self.mOrigin );
         isInitiallyInside = collisionMgr.ifCollide( initAngle );
@@ -51,22 +52,22 @@ class Ray:
         
         i = 1;
         while( isInitiallyInside == collisionMgr.ifCollide( nextCheckPointInCSpace )):
-            for i in range(0, len(self.mOrigin)):
-                if( math.fabs( nextCheckPoint[i]-self.mOrigin[i] ) > 1000 ):
+            for j in range(0, len(self.mOrigin)):
+                if( math.fabs( nextCheckPoint[j]-self.mOrigin[j] ) > 1000 ):
                     return 10000000000000000000;
                 pass;
             
             i+=1;
-            for i in range( 0, len(nextCheckPoint) ):
-                nextCheckPoint[i] = self.mOrigin[i] + self.mDirect[i]*stepLength*i;
+            for j in range( 0, len(nextCheckPoint) ):
+                nextCheckPoint[j] = self.mOrigin[j] + self.mDirect[j]*stepLength*i;
             nextCheckPointInCSpace = cSpace.map2UnscaledSpace( nextCheckPoint );
             pass;
         
         self.mEnd = nextCheckPoint
 
         dist = 0;
-        for i in range( 0, len(nextCheckPoint) ):
-            dist += nextCheckPoint[i]**2;
+        for j in range( 0, len(nextCheckPoint) ):
+            dist += (nextCheckPoint[j]-self.mOrigin[j])**2;
         dist = math.sqrt( dist );
         
         if isInitiallyInside:
@@ -77,7 +78,7 @@ class Ray:
 
 class RayShooter:
     """Class to manager ray operations"""
-    def __init__( self, origin, collisionManager, cSpacem ):
+    def __init__( self, origin, collisionManager, cSpace ):
         """
          @param origin: origin position. We will shoot random rays from this position.
          """
@@ -96,10 +97,12 @@ class RayShooter:
 
         for i in range(1, num+1):
             dir = [0] * dim;
-            for i in range(0, dim ):
-                dir[i] = randint( 1, 1000 );
+            for j in range(0, dim ):
+                dir[j] = randint( -500, 500 );
             ray = Ray( self.mOrigin, dir );
             dist = ray.shoot(self.mCollisionMgr, self.mCSpace);
+            if dist is None:
+                return -100000000000.0;
             if math.fabs(dist) < math.fabs(minDist):
                 minDist = dist;
 

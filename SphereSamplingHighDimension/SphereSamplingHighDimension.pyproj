@@ -30,6 +30,7 @@
     <Compile Include="RobotArm.py" />
     <Compile Include="SampleManager.py" />
     <Compile Include="SphereSamplingHighDimension.py" />
+    <Compile Include="test.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
 </Project>
