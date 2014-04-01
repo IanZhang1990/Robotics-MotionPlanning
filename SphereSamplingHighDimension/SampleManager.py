@@ -189,12 +189,12 @@ class SampleManager:
                     rayShooter = RayShooter( bnd, self.mCollisionMgr, self.mCSpace );	# Shot ray
                     dim = len(maxDimLens);
                     dist = rayShooter.randShoot(50*(dim-1));					# Get the distance to obstacles
-                    if (dist) >= 40.0:	    					# if not too close to obstacles
+                    if (dist) >= 10.0:	    					# if not too close to obstacles
                         newDistSamp = DistSample(bnd, dist)	# construct a new dist sample
                         print "{0}  R: {1}".format( bnd, dist );
                         self.mDistSamples.append( newDistSamp );				# add to our dist sample set
                         bounds = newDistSamp.getBoundaryConfigs(maxDimLens);		# get the boundary configs
-                        if len(self.mDistSamples) == 100:
+                        if len(self.mDistSamples) == 3000:
                             return;
                         for bndConfig in bounds:
                             #if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
@@ -215,9 +215,9 @@ class SampleManager:
         file2write = open( filename, 'w' );
         formattedData = ""
         for vector in self.mDistSamples:
-            formattedData = "";
             for i in range( 0, len(vector.mSample) ):
                 formattedData += str( vector.mSample[i] ) + "\t";
+            formattedData += str(vector.mRadius);
             formattedData += "\n";
             pass
         
