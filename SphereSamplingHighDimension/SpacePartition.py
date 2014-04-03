@@ -1,5 +1,6 @@
 import math
 import sys, os
+from collections import defaultdict
 
 class Grid:
 	def __init__(self, center, dimLens):
@@ -29,7 +30,10 @@ class SpacePartition:
 		dim = len(maxDimLens);
 		self.mMaxDimLens = maxDimLens;
 		self.mUnitDimLens = unitDimLens;
+		self.mHashTable = defaultdict(Grid);
 
+	def addSphere( self, sphere ):
+		
 
 	def getContainingGrid( self, point ):
 		"""Given a point in n-D world, return the grid containing it."""
@@ -41,4 +45,5 @@ class SpacePartition:
 		for i in range(0, dim):
 			dimIdx[i] = int(point[i]) / int( self.mUnitDimLens[i] );
 
-		
+
+
