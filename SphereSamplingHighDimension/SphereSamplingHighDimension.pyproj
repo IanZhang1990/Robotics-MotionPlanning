@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{547c24df-9a84-486d-868f-c6319c3b65dc}</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>SphereSamplingHighDimension.py</StartupFile>
+    <StartupFile>ObstSurfSearcher.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -25,12 +25,14 @@
     <Compile Include="AstarSearcher.py" />
     <Compile Include="CollisionManager.py" />
     <Compile Include="CSpaceWorld.py" />
+    <Compile Include="ObstSurfSearcher.py" />
     <Compile Include="PriorityQueue.py" />
     <Compile Include="Ray.py" />
     <Compile Include="RobotArm.py" />
     <Compile Include="SampleManager.py" />
     <Compile Include="SphereSamplingHighDimension.py" />
     <Compile Include="test.py" />
+    <Compile Include="utility.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
 </Project>
