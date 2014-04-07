@@ -1,20 +1,24 @@
 
 import math;
 import utility;
+from sklearn.neighbors import NearestNeighbors
+import numpy as np
 
 class Segment:
-    def __init__(self, collisionMgr):
+    def __init__(self, collisionMgr, cspace):
         """@param collisionMgr: collision manager to detect collision"""
         self.mClsnMgr = collisionMgr;
+        self.mCSpace = cspace;
         pass;
-
 
     def search( self, start, end, minDist ):
         """@param start: a point in C-space
          @param end: the end point in C-Space
          @param minDist: the min dist for binary search to consider a point precise enough"""
-        startCollide = self.mClsnMgr.ifCollide( start );
-        endCollide = self.mClsnMgr.ifCollide(end);
+        startAngles = self.mCSpace.map2UnscaledSpace( start );
+        endAngles = self.mCSpace.map2UnscaledSpace( end )
+        startCollide = self.mClsnMgr.ifCollide( startAngles );
+        endCollide = self.mClsnMgr.ifCollide(endAngles);
         if ( startCollide == endCollide ):
             return None;
         
@@ -26,7 +30,8 @@ class Segment:
                     return end;
             sum = utility.add( start, end );
             mid = utility.devide( sum, 2 );
-            midCollide = self.mClsnMgr.ifCollide( mid );
+            midAngles = self.mCSpace.map2UnscaledSpace( mid )
+            midCollide = self.mClsnMgr.ifCollide( midAngles );
             if( midCollide == startCollide ):
                 start = mid;
                 startCollide = midCollide;
@@ -36,17 +41,44 @@ class Segment:
 
 class ObstSurfSearcher(object):
     """to find configurations that are closed to obstacles in C-Space"""
-    def __init__( self, collisionMgr ):
+    def __init__( self, collisionMgr, cspace ):
+        self.mCSpace = cspace;
         self.mClsnMgr = collisionMgr;
         self.mSurfSamples = [];
+        self.mSurfSampNumpy = None;
+        self.mNeigh = None;
     
     def searchObstSurfConfigs( self, freeSamples, obstSamples, minDist ):
         for start in freeSamples:
             for end in obstSamples:
-                newSeg = Segment( self.mClsnMgr );
+                newSeg = Segment( self.mClsnMgr, self.mCSpace );
                 surfSample = newSeg.search( start, end, minDist );
                 if surfSample is not None:
                     self.mSurfSamples.append( surfSample );
+                    pass;
+                pass;
+            pass;
+        self.mSurfSampNumpy = np.array( [self.mSurfSamples] );
+        self.mNeigh = NearestNeighbors( n_neighbors = 2, algorithm = 'kd_tree', metric = 'euclidean' );
+        self.mNeigh.fit( self.mSurfSampNumpy );
+
+    def getNearest( self, config ):
+        dist, indx = neigh.kneighbors( config );
+        return dist[0][0], self.mSurfSampNumpy[indices[0]][0];
+
+
+
+X = np.array([[-1, -1], [-2, -2], [-3, -3], [1.5, 1.5], [2, 2], [3, 3]])
+neigh = NearestNeighbors(n_neighbors = 1, algorithm = 'kd_tree', metric = 'euclidean')
+neigh.fit( X );
+
+distances, indices = neigh.kneighbors([1,1]);
+
+
+print X[indices[0]][0];
+print distances[0];
+
+
 
 """
 import pygame;

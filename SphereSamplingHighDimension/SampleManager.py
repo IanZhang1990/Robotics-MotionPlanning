@@ -116,6 +116,31 @@ class SampleManager:
         self.mFreeSamples = [];
         self.mObstSamples = [];
         self.g_failTimes = Value( 'i', 0 );
+
+    def getFreeSamples( self, num, dim, maxDimLens ):
+        """get num number of free samples in C-Space"""
+        size = 0; 
+        while size < num:
+            rnd = [0] * dim;
+            for i in range( 0, dim ):
+                rnd[i] = randrange( 0, maxDimLens[i] );
+                pass
+            angles = self.mCSpace.map2UnscaledSpace( rnd );
+            if( self.mCollisionMgr.ifCollide( angles ) ):
+                self.mFreeSamples.append( rnd );
+                size += 1;
+
+    def randomSample( self, num, dim, maxDimLens ):
+        for i in range( 0, num ):
+            rnd = [0] * dim;
+            for i in range( 0, dim ):
+                rnd[i] = randrange( 0, maxDimLens[i] );
+                pass
+            angles = self.mCSpace.map2UnscaledSpace( rnd );
+            if( self.mCollisionMgr.ifCollide( angles ) ):
+                self.mFreeSamples.append( rnd );
+            else:
+                self.mObstSamples.append( rnd );
      
     def getARandomFreeSample(self, num, maxDimLens, dim):
         """Randomly sample the space and return a free sample (with distance info).
@@ -152,6 +177,10 @@ class SampleManager:
 
         return None;
            
+
+    def distSampleUsingObstSurfSamps( self, numMaxLens ):
+       
+
     def distSampleOneThread( self, num, maxDimLens ):
         """@param num: failure time to sample a new configuration randomly"""
 
