@@ -1,6 +1,6 @@
 
 
-import pygame, sys, os
+import sys, os
 import math
 from copy import copy;
 from random import randint

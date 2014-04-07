@@ -5,7 +5,8 @@ import sys, os, datetime
 import math
 from Ray import *
 from CSpaceWorld import *
-import pygame
+from ObstSurfSearcher import *
+#import pygame
 from Queue import Queue
 from collections import defaultdict
 import multiprocessing
@@ -22,6 +23,7 @@ class DistSample:
     def __init__(self, pos, radius):
         self.mSample = pos
         self.mRadius = radius;
+        self.mBoundaries = None;
 
     def getBoundaryConfigs(self, maxDimLens, num=0):
         """ Get configs in the boundary of the sphere.
@@ -29,6 +31,9 @@ class DistSample:
          @param num: the number of boundary configs you need.
          When num = 0, automatically get boundary configs."""
         
+        if self.mBoundaries is not None:
+            return self.mBoundaries;
+
         def prod(n):
             """Product of elements"""
             result = 1;
@@ -46,7 +51,7 @@ class DistSample:
         dlt = 2;
         dim = len(self.mSample);
         if num == 0:
-            num = int( (surf( self.mRadius, dim ) / ( dlt**2 * 1.73205 / 4.0 )  + 1) * 1.3 );
+            num = int( (surf( self.mRadius, dim ) / ( dlt**2 * 1.73205 / 4.0 )  + 1));
         if num > 5000:
             num = 5000;
 
@@ -178,8 +183,68 @@ class SampleManager:
         return None;
            
 
-    def distSampleUsingObstSurfSamps( self, numMaxLens ):
-       
+    def distSampleUsingObstSurfSamps( self, num, maxDimLens ):
+        """@param num: failure time to sample a new configuration randomly"""
+
+        self.randomSample( 800, len(maxDimLens), maxDimLens );
+        searcher = ObstSurfSearcher(self.mCollisionMgr, self.mCSpace);
+        searcher.searchObstSurfConfigs( self.mFreeSamples, self.mObstSamples, 3 );
+
+        self.mDistSamples = [];
+        boundaryQueue = [];
+        bndSphDict = defaultdict();
+        randFreeSamp = 1234;
+
+        while( randFreeSamp != None ):
+            randFreeSamp = self.getARandomFreeSample( num, maxDimLens, len(maxDimLens) );
+            if( randFreeSamp == None ):
+                return;
+            self.mDistSamples.append( randFreeSamp );
+            bounds = randFreeSamp.getBoundaryConfigs( maxDimLens );
+
+            for bndConfig in bounds:
+                #if not bndConfig in bndSphDict:			# put the boundconfig-sphere relation to the dictionary
+                bndSphDict[str(bndConfig)] = randFreeSamp;
+                boundaryQueue.append( bndConfig );				# put the boundary config to the queue.
+
+            while( len( boundaryQueue) != 0 ):
+                bnd = boundaryQueue[0];							# get a new boundary
+                del boundaryQueue[0]
+                newSamp = True;
+                if self.mCollisionMgr.ifCollide( bnd ):
+                    continue;
+                for sample in self.mDistSamples:
+                    if sample.isInside( bnd, maxDimLens ): #####################################################################################================================ Locally Sensetive Hash
+                        # check if within any spheres, not including the sphere that the boundary config belongs to.
+                        newSamp = False;
+                        break;
+
+                if newSamp:
+                    # get the nearest distance to obstacles
+                    dist, neighbor = searcher.getNearest( bnd );              # Get the distance to obstacles
+                    if (dist) >= 40.0:	    					 # if not too close to obstacles
+                        newDistSamp = DistSample(bnd, dist)	# construct a new dist sample
+                        print "{0}  R: {1}".format( bnd, dist );
+                        self.mDistSamples.append( newDistSamp );				# add to our dist sample set
+                        if( len(self.mDistSamples) >= 500 ):
+                            return;
+                        bounds = newDistSamp.getBoundaryConfigs(maxDimLens);		# get the boundary configs
+                        for bndConfig in bounds:
+                            #if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
+                            bndSphDict[str(bndConfig)] = newDistSamp;
+                            boundaryQueue.append( bndConfig );				# put the boundary config to the queue.
+                        
+                        ###########################=========================================================
+                        """
+                        if len(self.mDistSamples)%100 == 0:
+                            print "------------ FRESH -------------"
+                            for sphere in self.mDistSamples:
+                                boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]"""
+                        ###########################=========================================================
+
+                        print "\t\t\t\t\t\t\t\t\t\t{0}\n".format(len(boundaryQueue));
+
+
 
     def distSampleOneThread( self, num, maxDimLens ):
         """@param num: failure time to sample a new configuration randomly"""
@@ -231,7 +296,7 @@ class SampleManager:
                             boundaryQueue.append( bndConfig );				# put the boundary config to the queue.
                         
                         ###########################=========================================================
-                        if len(self.mDistSamples)%10 == 0:
+                        if len(self.mDistSamples)%100 == 0:
                             print "------------ FRESH -------------"
                             for sphere in self.mDistSamples:
                                 boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]
@@ -244,9 +309,9 @@ class SampleManager:
         file2write = open( filename, 'w' );
         formattedData = ""
         for vector in self.mDistSamples:
-            formattedData = "";
             for i in range( 0, len(vector.mSample) ):
                 formattedData += str( vector.mSample[i] ) + "\t";
+            formattedData += str(vector.mRadius);
             formattedData += "\n";
             pass
         

@@ -33,7 +33,7 @@ class SpacePartition:
 		self.mHashTable = defaultdict(Grid);
 
 	def addSphere( self, sphere ):
-		
+		return;
 
 	def getContainingGrid( self, point ):
 		"""Given a point in n-D world, return the grid containing it."""

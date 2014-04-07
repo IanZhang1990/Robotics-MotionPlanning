@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{547c24df-9a84-486d-868f-c6319c3b65dc}</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>ObstSurfSearcher.py</StartupFile>
+    <StartupFile>SphereSamplingHighDimension.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -30,6 +30,7 @@
     <Compile Include="Ray.py" />
     <Compile Include="RobotArm.py" />
     <Compile Include="SampleManager.py" />
+    <Compile Include="SpacePartition.py" />
     <Compile Include="SphereSamplingHighDimension.py" />
     <Compile Include="test.py" />
     <Compile Include="utility.py" />

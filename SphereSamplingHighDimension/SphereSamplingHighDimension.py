@@ -1,5 +1,6 @@
-import pygame, sys, os, datetime
-from pygame.locals import *
+import sys, os, datetime
+#import pygame;
+#from pygame.locals import *
 
 
 from CSpaceWorld import *
@@ -7,7 +8,7 @@ from RobotArm import *
 from SampleManager import *
 from AstarSearcher import *
 
-pygame.init()
+#pygame.init()
 WIDTH = 1366
 HEIGHT = 768
 #DISPLAYSURFACE = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -44,7 +45,7 @@ def main():
 
     ######## Now, let's begin to sample spheres in the scaled-CSpace.
     sampleManager = SampleManager( cSpaceWorld );
-    sampleManager.distSampleOneThread(20, maxDimLens);
+    sampleManager.distSampleUsingObstSurfSamps(20, maxDimLens);
     sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
     #sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
 
@@ -81,4 +82,4 @@ def main():
 if __name__ == "__main__":
 	#freeze_support();
 	main();
-	pygame.quit();
+	#pygame.quit();

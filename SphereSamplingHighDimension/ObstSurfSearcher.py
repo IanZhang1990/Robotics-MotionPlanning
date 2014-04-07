@@ -49,6 +49,7 @@ class ObstSurfSearcher(object):
         self.mNeigh = None;
     
     def searchObstSurfConfigs( self, freeSamples, obstSamples, minDist ):
+        print "Begin to sample on the surface of obstacles in C-Space."
         for start in freeSamples:
             for end in obstSamples:
                 newSeg = Segment( self.mClsnMgr, self.mCSpace );
@@ -58,16 +59,31 @@ class ObstSurfSearcher(object):
                     pass;
                 pass;
             pass;
-        self.mSurfSampNumpy = np.array( [self.mSurfSamples] );
+        print "Got {0} surface samples".format( len(self.mSurfSamples) );
+        self.writeSamples2File( "surfaceSample.txt" );
+        print "Preparing for nearest neighbor search.";
+        self.mSurfSampNumpy = np.array( self.mSurfSamples );
         self.mNeigh = NearestNeighbors( n_neighbors = 2, algorithm = 'kd_tree', metric = 'euclidean' );
         self.mNeigh.fit( self.mSurfSampNumpy );
+        print "Ready to do nearest neighbor search.";
 
     def getNearest( self, config ):
-        dist, indx = neigh.kneighbors( config );
-        return dist[0][0], self.mSurfSampNumpy[indices[0]][0];
+        dist, indx = self.mNeigh.kneighbors( config );
+        return dist[0][0], self.mSurfSampNumpy[indx[0]][0];
 
+    def writeSamples2File(self, filename):
+        file2write = open( filename, 'w' );
+        formattedData = ""
+        for vector in self.mSurfSamples:
+            for i in range( 0, len(vector) ):
+                formattedData += str( vector[i] ) + "\t";
+            formattedData += "\n";
+            pass
+        
+        file2write.write( formattedData );
+        file2write.close();
 
-
+"""
 X = np.array([[-1, -1], [-2, -2], [-3, -3], [1.5, 1.5], [2, 2], [3, 3]])
 neigh = NearestNeighbors(n_neighbors = 1, algorithm = 'kd_tree', metric = 'euclidean')
 neigh.fit( X );
@@ -77,7 +93,7 @@ distances, indices = neigh.kneighbors([1,1]);
 
 print X[indices[0]][0];
 print distances[0];
-
+"""
 
 
 """

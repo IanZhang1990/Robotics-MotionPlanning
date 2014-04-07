@@ -3,7 +3,7 @@ import sys, os
 import math
 import random
 from CollisionManager import *
-import pygame;
+#import pygame;
 
 class CSpaceWorld:
     g_obcColor = [ 150, 150, 150 ]
