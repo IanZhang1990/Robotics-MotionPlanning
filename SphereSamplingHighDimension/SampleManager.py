@@ -48,12 +48,13 @@ class DistSample:
             return 2* (math.pi**2) * (radius**3);
          
         
-        dlt = 2;
+        dlt = 25;
         dim = len(self.mSample);
         if num == 0:
             num = int( (surf( self.mRadius, dim ) / ( dlt**2 * 1.73205 / 4.0 )  + 1));
-        if num > 5000:
-            num = 5000;
+            if num ==0: num = 10;
+        if num > 500:
+            num = 500;
 
         bnds = list();
         for i in range(0, num):
@@ -222,11 +223,11 @@ class SampleManager:
                 if newSamp:
                     # get the nearest distance to obstacles
                     dist, neighbor = searcher.getNearest( bnd );              # Get the distance to obstacles
-                    if (dist) >= 40.0:	    					 # if not too close to obstacles
+                    if (dist) >= 30.0:	    					 # if not too close to obstacles
                         newDistSamp = DistSample(bnd, dist)	# construct a new dist sample
                         print "{0}  R: {1}".format( bnd, dist );
                         self.mDistSamples.append( newDistSamp );				# add to our dist sample set
-                        if( len(self.mDistSamples) >= 500 ):
+                        if( len(self.mDistSamples) >= 800 ):
                             return;
                         bounds = newDistSamp.getBoundaryConfigs(maxDimLens);		# get the boundary configs
                         for bndConfig in bounds:
@@ -235,11 +236,10 @@ class SampleManager:
                             boundaryQueue.append( bndConfig );				# put the boundary config to the queue.
                         
                         ###########################=========================================================
-                        """
-                        if len(self.mDistSamples)%100 == 0:
+                        if len(self.mDistSamples)%30 == 0:
                             print "------------ FRESH -------------"
                             for sphere in self.mDistSamples:
-                                boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]"""
+                                boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]
                         ###########################=========================================================
 
                         print "\t\t\t\t\t\t\t\t\t\t{0}\n".format(len(boundaryQueue));

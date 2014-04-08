@@ -45,10 +45,10 @@ def main():
 
     ######## Now, let's begin to sample spheres in the scaled-CSpace.
     sampleManager = SampleManager( cSpaceWorld );
-    #sampleManager.distSampleUsingObstSurfSamps(20, maxDimLens);
-    #sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
-    sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
-
+    sampleManager.distSampleUsingObstSurfSamps(20, maxDimLens);
+    sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
+    #sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
+    return;
 
     ######## Plan a motion task ########################
     astarSearcher = AstarSearcher( sampleManager.mDistSamples, maxDimLens );
