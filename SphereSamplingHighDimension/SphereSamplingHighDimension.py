@@ -1,6 +1,6 @@
 import sys, os, datetime
-#import pygame;
-#from pygame.locals import *
+import pygame;
+from pygame.locals import *
 
 
 from CSpaceWorld import *
@@ -8,10 +8,10 @@ from RobotArm import *
 from SampleManager import *
 from AstarSearcher import *
 
-#pygame.init()
+pygame.init()
 WIDTH = 1366
 HEIGHT = 768
-#DISPLAYSURFACE = pygame.display.set_mode((WIDTH, HEIGHT))
+DISPLAYSURFACE = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # segment obstacles
 g_obstacles = []#[Rect( 40,40, 100, 150 ), Circle( 300, 200, 50 ), Circle( 520, 200, 50 )]
@@ -45,11 +45,53 @@ def main():
 
     ######## Now, let's begin to sample spheres in the scaled-CSpace.
     sampleManager = SampleManager( cSpaceWorld );
-    sampleManager.distSampleUsingObstSurfSamps(20, maxDimLens);
-    sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
-    #sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
+    #sampleManager.distSampleUsingObstSurfSamps(20, maxDimLens);
+    #sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
+    sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
 
-    #pygame.image.save( DISPLAYSURF, "PhysicSpace.PNG" )
+
+    ######## Plan a motion task ########################
+    astarSearcher = AstarSearcher( sampleManager.mDistSamples, maxDimLens );
+    startScaled = ( 900, 200, 50 ); goalScaled = (600, 754, 189);
+    start = cSpaceWorld.map2UnscaledSpace( startScaled );
+    goal = cSpaceWorld.map2UnscaledSpace( goalScaled );
+    before = datetime.datetime.now();
+    #path = astarSearcher.astarSearch_Q( startScaled, goalScaled, cSpaceWorld );
+    now = datetime.datetime.now();
+    print now - before;
+    #astarSearcher.savePath(path);
+    path = astarSearcher.loadPath("path.txt");
+
+    ######## Set up the pygame stuff
+    DISPLAYSURF = pygame.display.set_mode((WIDTH, HEIGHT));
+    DISPLAYSURF.fill((255,255,255));
+    for sphere in obstacles:
+        sphere.render( DISPLAYSURF, ( 50, 50, 50 ) );
+
+
+    ifCollide = robot.setParams( start );
+    robot.render( DISPLAYSURF, ifCollide );
+
+    if path is not None:
+        pathLen = len(path);
+        perPathColorChange = 250 / pathLen;
+        pathCount = 0;
+        for i in range(1, len(path)):
+            chanel = 255 - perPathColorChange * pathCount;
+            beginColor = ( chanel,chanel, chanel );
+            chanel = 255 - perPathColorChange * (pathCount+1);
+            endColor = (chanel/5, chanel/5, chanel);
+            pathCount += 1;
+            #print "{0}\t{1}".format( path[i-1], path[i] );
+            start_, goal_ = cSpaceWorld.mapPath2UnscaledSpace( path[i-1], path[i] );
+            robot.move( start_, goal_, beginColor, endColor, DISPLAYSURF );
+
+    ifCollide = robot.setParams( start );
+    robot.render( DISPLAYSURF, ifCollide );
+    ifCollide = robot.setParams( goal );
+    robot.render( DISPLAYSURF, True );
+
+    pygame.image.save( DISPLAYSURF, "PhysicSpace.PNG" );
     """
     ####### Randomly sample the world, show it in the image
     DISPLAYSURF = pygame.display.set_mode((WIDTH, HEIGHT));

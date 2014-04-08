@@ -11,6 +11,8 @@ class PriorityQueue:
         
     def push(self, task, priority):
         'Add a new task or update the priority of an existing task'
+        if( type(task) is list ):
+            task = tuple(task);
         if task in self.mEntryFinder:
             self.remove_task(task)
         count = next(self.mCounter)
@@ -19,12 +21,16 @@ class PriorityQueue:
         heappush(self.mPriQue, entry)
 
     def find(self, task):
+        if( type(task) is list ):
+            task = tuple(task);
         if task in self.mEntryFinder:
             return self.mEntryFinder[task];
         else:
             return None;
 
     def remove_task(self, task):
+        if( type(task) is list ):
+            task = tuple(task);
         'Mark an existing task as self.mREMOVED.  Raise KeyError if not found.'
         entry = self.mEntryFinder.pop(task)
         entry[-1] = self.mREMOVED

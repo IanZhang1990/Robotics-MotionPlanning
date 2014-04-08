@@ -1,4 +1,4 @@
-#import pygame;
+import pygame;
 import math;
 from time import sleep
 
@@ -82,10 +82,11 @@ class RobotArm(object):
 
     def move(self, start, goal, beginColor=(0,0,180), endColor=(0,0,180), imgsurf=None):
         """Given two configurations, we want to move from start --> goal"""
+        print "start: {0} \t\t goal:{1}".format( start, goal );
         d_angles = [0] * len(self.mAngles)
         dist = 0;
         for i in range( 0, len(self.mAngles) ):
-            d_angles[i] = start[i] - goal[i];
+            d_angles[i] = goal[i] - start[i];
             dist += d_angles[i]**2;
         dist = math.sqrt( dist );
         num = int( dist/0.1);
@@ -93,11 +94,12 @@ class RobotArm(object):
             num = 1;
         delta_blue = (endColor[2] - beginColor[2])/num;
         for i in range(0,num):
-            tempAngles = start;
-            for j in range(0,len(self.mAngles)):
+            tempAngles = [0] * len(start);
+            for j in range(0,len(tempAngles)):
                 tempAngles[j] = start[j] + i * (d_angles[j]/num);
+            print "temp: {0}".format( tempAngles )
             ifcollide = self.setParams( tempAngles );
             color = (math.fabs(100-(beginColor[0]+delta_blue*i)), (beginColor[1]+delta_blue*i)/1, math.fabs( 180-(beginColor[2]+delta_blue*i)/1));
             if( imgsurf is not None ):
                 self.render( imgsurf, ifcollide, color );
-                sleep(0.1);
+            sleep(0.1);

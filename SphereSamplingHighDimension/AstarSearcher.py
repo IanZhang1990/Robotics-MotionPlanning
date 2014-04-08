@@ -12,7 +12,7 @@ from PriorityQueue import PriorityQueue;
 
 class AstarNode:
 	def __init__(self, pos, parent, sphere = None):
-		self.mPosition = pos;
+		self.mPosition = tuple(pos);
 		self.mParentNode = parent;
 		self.mSphere = sphere;		# The sphere the sample is in
 		self.mG = 0;
@@ -36,16 +36,16 @@ class AstarSearcher:
                     continue;
                 deltas = [0] * len(sphere.mSample);
                 for i in range(0, len(sphere.mSample)):
-                    deltas[i] = math.fabs( sphere.mSample[i] - other.mSample[0] );
+                    deltas[i] = math.fabs( sphere.mSample[i] - other.mSample[i] );
                     if( maxDimLens[i] - deltas[i] < deltas[i] ):
                         deltas[i] = maxDimLens[i] - deltas[i];
                 
                 dist = 0;
                 for i in range(0, len(sphere.mSample)):
                     dist += deltas[i]**2;
-                dist = math.sqrt(length);
+                dist = math.sqrt(dist);
 
-                if( length <= (sphere.mRadius+other.mRadius) ):
+                if( dist <= (sphere.mRadius+other.mRadius) ):
                     # Overlap! Record it in the dictionary
                     self.mOverlapDict[sphere] += [ other ];
 
@@ -94,7 +94,7 @@ class AstarSearcher:
         """Given two points, return their distance in the cspace"""
         dlts = [0] * len(one);
         dist = 0;
-        for i in range(0,dim):
+        for i in range(0,len(maxDimLens)):
             dlts[i] = math.fabs( one[i] - two[i] );
             if( maxDimLens[i] - dlts[i] < dlts[i] ):
                 dlts[i] = maxDimLens[i] - dlts[i];
@@ -119,9 +119,9 @@ class AstarSearcher:
         sphereDict = defaultdict();
         GDict = defaultdict();
 
-        ownerShpere = self.findOwnerSphere( start[0],start[1], cSpace.mScaledWidth, cSpace.mScaledHeight);
-        startNode = AstarNode( start[0], start[1], None, ownerShpere );
-        start_mF =  self.distance( start, goal, cSpace.mScaledWidth, cSpace.mScaledHeight );
+        ownerShpere = self.findOwnerSphere( start, cSpace.mMaxDimLens);
+        startNode = AstarNode( start, None, ownerShpere );
+        start_mF =  self.distance( start, goal, cSpace.mMaxDimLens );
         openList.push( startNode.mPosition,  start_mF );
         sphereDict[str(startNode.mPosition)] = ownerShpere;
         GDict[str(startNode.mPosition)] = 0;
@@ -138,7 +138,7 @@ class AstarSearcher:
 
             #openList.remove_task( current );
             currOwnerSphere = sphereDict[str(current)];
-            successors = self.getSphereBoundaries(currOwnerSphere, goal, cSpace.mScaledWidth, cSpace.mScaledHeight);
+            successors = self.getSphereBoundaries(currOwnerSphere, goal, cSpace.mMaxDimLens);
             closedList.push( current, curr_mF );
 
             for suc in successors:
@@ -146,19 +146,19 @@ class AstarSearcher:
                 if( closedList.find( sucSamp ) ):
                     continue;
                 sucOwnerSphere = suc[1];
-                sucNode = AstarNode( sucSamp[0], sucSamp[1], current, sucOwnerSphere )
+                sucNode = AstarNode( sucSamp, current, sucOwnerSphere )
                 sphereDict[str(sucNode.mPosition)] = sucOwnerSphere;
 
                 #if sucSamp == goal:
                 #    parentDict[str(sucNode.mPosition)] = current;
                 #    return backtrace( sucSamp, parentDict );
-                sucNode.mG = GDict[str(current)] + self.distance( sucSamp, current, cSpace.mScaledWidth, cSpace.mScaledHeight );
+                sucNode.mG = GDict[str(current)] + self.distance( sucSamp, current, cSpace.mMaxDimLens );
 
                 sameOpen = openList.find( sucNode.mPosition );
                 if( sameOpen is None or GDict[str(sucNode.mPosition)] > sucNode.mG):
                     parentDict[str(sucNode.mPosition)] = sucNode.mParentNode;
                     GDict[str(sucNode.mPosition)] = sucNode.mG;
-                    sucNode_mH = self.distance( sucSamp, goal, cSpace.mScaledWidth, cSpace.mScaledHeight );
+                    sucNode_mH = self.distance( sucSamp, goal, cSpace.mMaxDimLens );
                     sucNode_mF = sucNode.mG + sucNode_mH;
                     openList.push( sucNode.mPosition, sucNode_mF );
                 pass
@@ -173,7 +173,7 @@ class AstarSearcher:
                 config = path[i];
                 toWrite = ""
                 for j in range( 0, len(config) ):
-                    toWrite += str( config[i] ) + "\t";
+                    toWrite += str( config[j] ) + "\t";
                 toWrite += "\n";
                 pathfile.write( toWrite );
 
@@ -185,8 +185,8 @@ class AstarSearcher:
         for line in pathfile:
             info = line.split('\t');
             dim = len(info);
-            pos = [0] * (dim);
-            for i in range(0,dim):
+            pos = [0] * (dim-1);
+            for i in range(0,dim-1):
                 pos[i] = float( info[i] );
             path.append( pos );
             pass;

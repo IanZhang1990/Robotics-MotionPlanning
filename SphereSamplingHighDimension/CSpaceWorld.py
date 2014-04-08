@@ -2,6 +2,7 @@
 import sys, os
 import math
 import random
+import copy
 from CollisionManager import *
 #import pygame;
 
@@ -22,7 +23,7 @@ class CSpaceWorld:
         angles = [0] * len(position);
         for i in range(0, len(position)):
             angles[i] = ( position[i] - self.mMaxDimLens[i]/2 ) / float( self.mMaxDimLens[i] ) * math.pi * 2;
-        return angles;
+        return tuple(angles);
 
     def map2ScaledSpace( self, angles ):
         """Given angles in the unscaled real world, map them to scaled space."""
@@ -41,7 +42,7 @@ class CSpaceWorld:
             deltas[i] = goal[i] - start[i];
             if( deltas[i] > 0 and self.mMaxDimLens[i] - deltas[i] < deltas[i] ):
                 deltas[i] = -(self.mMaxDimLens[i] - deltas[i]);
-            elif( deltas[i] < 0 and self.mMaxDimLens[i] + daltas[i] < (-daltas[i]) ):
+            elif( deltas[i] < 0 and self.mMaxDimLens[i] + deltas[i] < (-deltas[i]) ):
                 deltas[i] = self.mMaxDimLens[i] + deltas[i];
 
         #if( dx > 0 and self.mScaledWidth - dx < dx ):
@@ -53,12 +54,11 @@ class CSpaceWorld:
         #elif( dy < 0 and self.mScaledHeight-(-dy)<(-dy) ):
         #    dy = self.mScaledHeight-(-dy);
 
-        newgoal = (start[0] + dx, start[1] + dy);
-        newgoal = copy( start );
+        newgoal = [0] * len(start);
         for i in range(0, len(newgoal)):
             newgoal[i] = start[i] + deltas[i];
 
         start_ = self.map2UnscaledSpace( start );
         goal_ = self.map2UnscaledSpace( newgoal );
 
-        return start_, goal_;
+        return tuple(start_), tuple(goal_);

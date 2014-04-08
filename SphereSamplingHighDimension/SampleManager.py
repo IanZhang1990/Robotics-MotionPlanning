@@ -328,7 +328,7 @@ class SampleManager:
             pos = [0] * (dim-1);
             for i in range(0,dim-1):
                 pos[i] = float( info[i] );
-            radius = info[dim];
-            distSamp = DistSample(pos, radius);
+            radius = float(info[dim-1]);
+            distSamp = DistSample(tuple(pos), radius);
             if( distSamp.mRadius >= 2 ):
                 self.mDistSamples += [ distSamp ];

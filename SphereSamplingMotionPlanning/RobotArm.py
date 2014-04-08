@@ -73,7 +73,7 @@ class RobotArm(object):
         d_alpha = goal[0] - start[0];
         d_phi = goal[1] - start[1];
         dist = math.sqrt( d_alpha**2 + d_phi**2 );
-        num = int( dist/0.08);
+        num = int( dist/0.1);
         if num == 0:
             num = 1;
         delta_blue = (endColor[2] - beginColor[2])/num;
@@ -82,4 +82,4 @@ class RobotArm(object):
             color = (math.fabs(100-(beginColor[0]+delta_blue*i)), (beginColor[1]+delta_blue*i)/1, math.fabs( 180-(beginColor[2]+delta_blue*i)/1));
             if( imgsurf is not None ):
                 self.render( imgsurf, ifcollide, color );
-                sleep(0.1);
+            sleep(0.2);
