@@ -78,6 +78,7 @@ class SampleManager:
         self.mObstSamples = [];
         self.g_failTimes = Value( 'i', 0 );
         
+        
     def simpleSample(self, num):
         """randomly sample the world. save all samples"""
         samp = [];

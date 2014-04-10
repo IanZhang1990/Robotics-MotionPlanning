@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{547c24df-9a84-486d-868f-c6319c3b65dc}</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>SpacePartition.py</StartupFile>
+    <StartupFile>SphereSamplingHighDimension.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

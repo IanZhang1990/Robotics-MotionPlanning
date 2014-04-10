@@ -20,7 +20,7 @@ class AstarNode:
 		self.mF = 0; 				# F = cost + heuristic
 
 class AstarSearcher:
-    def __init__( self, spheres, maxDimLens ):
+    def __init__( self, spheres, maxDimLens, spacePartition ):
         """Constructor of AstarSearcher. The constructor will iterate each given spheres,
         and record their overlapping relationship. 
         @param spheres: distance samples got by SampleManager. Those samples should have 
@@ -28,8 +28,9 @@ class AstarSearcher:
         @param maxDimLens: max length of each dimension
         """
         self.mSpheres = spheres;
-        self.mOverlapDict = defaultdict( list );
-
+        #self.mOverlapDict = defaultdict( list );
+        self.mSpacePartition = spacePartition;
+        """
         for sphere in self.mSpheres:
             for other in self.mSpheres:
                 if( sphere == other ):
@@ -48,12 +49,19 @@ class AstarSearcher:
                 if( dist <= (sphere.mRadius+other.mRadius) ):
                     # Overlap! Record it in the dictionary
                     self.mOverlapDict[sphere] += [ other ];
+        """
 
     def findOwnerSphere( self, point, maxDimLens ):
         """Given sample, find the sphere the sample is in."""
-        minCenterDist = 1000000000;
+        radius = 0;
         chosenSphere = None;
         dim = len(point);
+        grid = self.mSpacePartition.getContainingGrid( point );
+        for sphere in grid.mContainer:
+            if sphere.isInside( point, maxDimLens ) and sphere.mRadius > radius :
+                chosenSphere = sphere;
+                radius = sphere.mRadius;
+        """
         for sphere in self.mSpheres:
             if sphere.isInside( point, maxDimLens ):
                 deltas = [0] * dim;
@@ -67,6 +75,7 @@ class AstarSearcher:
                 if minCenterDist > dist:
                     minCenterDist = dist;
                     chosenSphere = sphere;
+                    """
         return chosenSphere;
     
     def getSphereBoundaries( self, sphere, goal, maxDimLens ):
@@ -78,7 +87,15 @@ class AstarSearcher:
             return [(goal, sphere)];
 
         points = sphere.getBoundaryConfigs( maxDimLens );
-
+        legalPoints = [];
+        for point in points:
+             grid = self.mSpacePartition.getContainingGrid( point );
+             for neighbor in grid.mContainer:
+                 if neighbor is not sphere and neighbor.isInside( point, maxDimLens ):
+                     legalPoints += [ (point, neighbor) ];
+                     break;
+        return legalPoints;
+        """
         neighborSpheres = self.mOverlapDict[sphere];
 
         legalPoints = [];
@@ -87,8 +104,8 @@ class AstarSearcher:
                 if neighborSphere is not sphere and neighborSphere.isInside( point, maxDimLens ):
                     legalPoints += [(point, neighborSphere)]
                     break;
-
         return legalPoints;
+        """
 
     def distance( self, one, two, maxDimLens ):
         """Given two points, return their distance in the cspace"""
@@ -137,9 +154,11 @@ class AstarSearcher:
                 pygame.display.update();
 
             #openList.remove_task( current );
-            currOwnerSphere = sphereDict[str(current)];
+            currOwnerSphere = sphereDict[str(tuple(current))];
             successors = self.getSphereBoundaries(currOwnerSphere, goal, cSpace.mMaxDimLens);
             closedList.push( current, curr_mF );
+            if successors is None:
+                continue;
 
             for suc in successors:
                 sucSamp = suc[0];

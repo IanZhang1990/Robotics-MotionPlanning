@@ -5,6 +5,7 @@ import sys, os, datetime
 import math
 from Ray import *
 from CSpaceWorld import *
+from SpacePartition import *;
 from ObstSurfSearcher import *
 #import pygame
 from Queue import Queue
@@ -48,7 +49,7 @@ class DistSample:
             return 2* (math.pi**2) * (radius**3);
          
         
-        dlt = 25;
+        dlt = 30;
         dim = len(self.mSample);
         if num == 0:
             num = int( (surf( self.mRadius, dim ) / ( dlt**2 * 1.73205 / 4.0 )  + 1));
@@ -122,6 +123,8 @@ class SampleManager:
         self.mFreeSamples = [];
         self.mObstSamples = [];
         self.g_failTimes = Value( 'i', 0 );
+        unitLens = [100] * len( self.mCSpace.mMaxDimLens )
+        self.mSpacePartition = SpacePartition( self.mCSpace.mMaxDimLens, unitLens );
 
     def getFreeSamples( self, num, dim, maxDimLens ):
         """get num number of free samples in C-Space"""
@@ -164,11 +167,19 @@ class SampleManager:
                 continue;
 
             newSamp = True;
-            for sample in self.mDistSamples:
-                if sample.isInside( rnd, maxDimLens ):
+
+            grid = self.mSpacePartition.getContainingGrid( rnd );
+            for sphere in grid.mContainer:
+                if sphere.isInside( rnd, maxDimLens ):
                     newSamp = False;
                     failTime += 1
                     break;
+
+            #for sample in self.mDistSamples:
+            #    if sample.isInside( rnd, maxDimLens ):
+            #        newSamp = False;
+            #        failTime += 1
+            #        break;
             if newSamp:
                 # randomly shoot rays to get the nearest distance to obstacles
                 rayShooter = RayShooter( rnd, self.mCollisionMgr, self.mCSpace );
@@ -212,11 +223,18 @@ class SampleManager:
                 bnd = boundaryQueue[0];							# get a new boundary
                 del boundaryQueue[0]
                 newSamp = True;
-                if self.mCollisionMgr.ifCollide( bnd ):
+                bndUnscaled = self.mCSpace.map2UnscaledSpace( bnd );
+                if self.mCollisionMgr.ifCollide( bndUnscaled ):
                     continue;
-                for sample in self.mDistSamples:
-                    if sample.isInside( bnd, maxDimLens ): #####################################################################################================================ Locally Sensetive Hash
-                        # check if within any spheres, not including the sphere that the boundary config belongs to.
+                #for sample in self.mDistSamples:
+                #    if sample.isInside( bnd, maxDimLens ): #####################################################################################================================ Locally Sensetive Hash
+                #        # check if within any spheres, not including the sphere that the boundary config belongs to.
+                #        newSamp = False;
+                #        break;
+
+                grid = self.mSpacePartition.getContainingGrid( bnd );
+                for sphere in grid.mContainer:
+                    if sphere.isInside( bnd, maxDimLens ):
                         newSamp = False;
                         break;
 
@@ -227,8 +245,9 @@ class SampleManager:
                         newDistSamp = DistSample(bnd, dist)	# construct a new dist sample
                         print "{0}  R: {1}".format( bnd, dist );
                         self.mDistSamples.append( newDistSamp );				# add to our dist sample set
-                        if( len(self.mDistSamples) >= 800 ):
-                            return;
+                        self.mSpacePartition.addSphere( newDistSamp );         ############# Add new sphere to space partition
+                        #if( len(self.mDistSamples) >= 800 ):
+                        #    return;
                         bounds = newDistSamp.getBoundaryConfigs(maxDimLens);		# get the boundary configs
                         for bndConfig in bounds:
                             #if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
@@ -238,8 +257,17 @@ class SampleManager:
                         ###########################=========================================================
                         if len(self.mDistSamples)%30 == 0:
                             print "------------ FRESH -------------"
-                            for sphere in self.mDistSamples:
-                                boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]
+                            idx = 0;
+                            for bnd in boundaryQueue:
+                                grid = self.mSpacePartition.getContainingGrid( bnd );
+                                for sphere in grid.mContainer:
+                                    if sphere.isInside( bnd, maxDimLens ):
+                                        del boundaryQueue[idx];
+                                        idx -= 1;
+                                idx += 1;
+
+                        #    for sphere in self.mDistSamples:
+                        #        boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]
                         ###########################=========================================================
 
                         print "\t\t\t\t\t\t\t\t\t\t{0}\n".format(len(boundaryQueue));
@@ -321,7 +349,11 @@ class SampleManager:
     def loadDistSamplesFromFile( self, filename ):
         file2read = open( filename, 'r' );
         self.mDistSamples = [];
+        lineNum = 0;
         for line in file2read:
+            if( lineNum % 100 == 0 ):
+                print "Reading line: {0}".format( lineNum );
+            lineNum += 1;
             strDistSamp = line;
             info = strDistSamp.split( '\t' );
             dim = len(info);
@@ -332,3 +364,4 @@ class SampleManager:
             distSamp = DistSample(tuple(pos), radius);
             if( distSamp.mRadius >= 2 ):
                 self.mDistSamples += [ distSamp ];
+                self.mSpacePartition.addSphere( distSamp );

@@ -1,7 +1,6 @@
 import math
 import sys, os
 from collections import defaultdict
-from SampleManager import DistSample
 import numpy;
 import utility;
 
@@ -41,7 +40,7 @@ class Grid:
         startInside = self.inside( start );
         
         while( True ):
-            if ( utility.euclideanDistSqr( start, end ) <= 2 ):
+            if ( utility.euclideanDistSqr( start, end ) <= 4 ):
                 return start;
             mid = utility.devide( utility.add( start, end ), 2);
             if self.inside( mid ):
@@ -88,12 +87,12 @@ class SpacePartition:
         radius = sphere.mRadius;
         dim = len( center );
         #indices, values = numpy.ndenumerate( self.mGrids );
-        idx = 0;
         for index, item in numpy.ndenumerate( self.mGrids ):
+            if utility.euclideanDist(item.mCenter, sphere.mSample) - self.mUnitDimLens[0] > sphere.mRadius:
+                continue;
             if item.intersect( sphere, dim ):
-                print index;
+                #print index;
                 item.addSphere(sphere);
-            idx += 1;
         return;
 
     def getContainingGrid( self, point ):
@@ -111,6 +110,7 @@ class SpacePartition:
 
 
 ######### TEST ######################
+"""
 world = [ 1000, 1000 ];
 unitLen = [ 100, 100 ];
 sphere = DistSample( ( 100, 300 ), 40 );
@@ -119,4 +119,6 @@ sphere2 = DistSample( ( 500, 600 ), 200 );
 spacePart = SpacePartition( world, unitLen );
 spacePart.addSphere( sphere );
 spacePart.addSphere( sphere2 );
-
+grid = spacePart.getContainingGrid( (450,450) );
+a = grid.mContainer[0];
+"""

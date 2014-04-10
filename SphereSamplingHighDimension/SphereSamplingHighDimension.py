@@ -1,7 +1,7 @@
 import sys, os, datetime
 import pygame;
 from pygame.locals import *
-
+from time import sleep
 
 from CSpaceWorld import *
 from RobotArm import *
@@ -36,7 +36,7 @@ def main():
 
     ######## Set up the robot stuff
     #obstacles = [ Sphere( 550, 300, 50 ), Sphere( 550, 500, 30 ),Sphere( 850, 500, 50 ), Sphere( 900, 300, 30 ), Sphere( 790, 450, 20 ) ];
-    obstacles = [ Sphere( 550, 300, 50 ), Sphere( 550, 500, 60 ), Sphere( 850, 450, 70 ), Sphere( 720, 340, 40 ) ];
+    obstacles = [ Sphere( 550, 300, 50 ), Sphere( 550, 500, 60 ), Sphere( 850, 450, 70 ) ];
     lens = [ 100,100,100 ];
     robot = RobotArm( (WIDTH/2, HEIGHT/2), obstacles, lens );
     maxDimLens = [ 1000, 1000, 1000 ];
@@ -45,16 +45,19 @@ def main():
 
     ######## Now, let's begin to sample spheres in the scaled-CSpace.
     sampleManager = SampleManager( cSpaceWorld );
-    sampleManager.distSampleUsingObstSurfSamps(20, maxDimLens);
-    sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
+    #sampleManager.distSampleUsingObstSurfSamps(20, maxDimLens);
+    #sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
     #sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
-    return;
+    #return;
 
     ######## Plan a motion task ########################
-    astarSearcher = AstarSearcher( sampleManager.mDistSamples, maxDimLens );
-    startScaled = ( 900, 200, 50 ); goalScaled = (600, 754, 189);
+    astarSearcher = AstarSearcher( sampleManager.mDistSamples, maxDimLens, sampleManager.mSpacePartition );
+    startScaled = ( 545,161,381 ); goalScaled = (464, 874, 546.556674534);
     start = cSpaceWorld.map2UnscaledSpace( startScaled );
     goal = cSpaceWorld.map2UnscaledSpace( goalScaled );
+    if( sampleManager.mCollisionMgr.ifCollide(start) is True or sampleManager.mCollisionMgr.ifCollide(goal) is True ):
+        print "Start or goal collide with obstacles"
+        return; 
     before = datetime.datetime.now();
     #path = astarSearcher.astarSearch_Q( startScaled, goalScaled, cSpaceWorld );
     now = datetime.datetime.now();
@@ -72,6 +75,7 @@ def main():
     ifCollide = robot.setParams( start );
     robot.render( DISPLAYSURF, ifCollide );
 
+    sleep(2);
     if path is not None:
         pathLen = len(path);
         perPathColorChange = 250 / pathLen;
