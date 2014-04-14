@@ -53,6 +53,12 @@ def devide( config, value ):
 
     return result;
 
+def sphereLineCollision( center, radius, end1, end2 ):
+    dist = point2LineDist( center, end1, end2 );
+    if( dist > radius ):
+        return False;
+    else:
+        return True;
  
 def point2LineDist( point, end1, end2):
     """Distance from one point to a segment of line ( end1 --> end2 )"""
