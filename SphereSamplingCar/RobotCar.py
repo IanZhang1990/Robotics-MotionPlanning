@@ -73,11 +73,14 @@ class RobotCar(object):
 
         return False;
 
-    def setParams( self, x, y, phi ):
-        self.mX = x;
-        self.mY = y;
-        self.mPhi = phi;
+    def setParams( self,config ):
+        self.mX = config[0];
+        self.mY = config[1];
+        self.mPhi = config[2];
         return self.ifCollide();
+
+    def getConfig(self):
+        return ( self.mX, self.mY, self.mPhi );
 
     def move( self, mode, time, imgSurf = None ):
         """@param mode: forward | backward | right_forward | left_forward | right_backward | left_backward
