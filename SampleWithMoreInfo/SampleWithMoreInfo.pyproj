@@ -27,11 +27,15 @@
     <Compile Include="GraphSpanner.py" />
     <Compile Include="multi-Thread.py" />
     <Compile Include="Obstacle.py" />
+    <Compile Include="ObstSurfSearcher.py" />
     <Compile Include="PriorityQueue.py" />
     <Compile Include="PRM.py" />
     <Compile Include="Ray.py" />
     <Compile Include="SampleManager.py" />
+    <Compile Include="SampleManager_old.py" />
     <Compile Include="SampleWithMoreInfo.py" />
+    <Compile Include="SpacePartition.py" />
+    <Compile Include="utility.py" />
     <Compile Include="World.py" />
   </ItemGroup>
   <ItemGroup />

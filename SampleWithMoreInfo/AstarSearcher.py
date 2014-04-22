@@ -17,6 +17,7 @@ class SphereRelationDetector:
 
     def construct(self, worldWidth, worldHeight):
         #line = ;                                           # A line, parallel to Y-asix, that sweep the world space;
+        pass;
 
 class AstarNode:
 	def __init__(self, x, y, parent, sphere = None):
