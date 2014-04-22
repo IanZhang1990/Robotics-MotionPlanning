@@ -32,6 +32,8 @@ class DistSample:
          @param num: the number of boundary configs you need.
          When num = 0, automatically get boundary configs."""
 
+        return [];
+
         if self.mBoundaries is not None:
             return self.mBoundaries;
 
@@ -41,7 +43,7 @@ class DistSample:
 
         self.mBoundaries = []
         if( num == 0 ):
-            num = bndRadius/1 + 5;
+            num = bndRadius + 5;
 
         dlt_ang = (2*math.pi) / float(num); # increment of angle;
         for i in range(1, int(num)+1):
@@ -115,7 +117,7 @@ class SampleManager:
             self.mObstSamples.append( ( 3, i ) );
 
     def randomSample( self, num, dim, maxDimLens ):
-        self.getCSpaceBoundaryPoints();
+        #self.getCSpaceBoundaryPoints();
 
         for i in range( 0, num ):
             rnd = [0] * dim;
@@ -127,7 +129,7 @@ class SampleManager:
             else:
                 self.mObstSamples.append( rnd );
      
-    def getARandomFreeSample(self, num, maxDimLens, dim):
+    def getARandomFreeSample(self, num, surfSearcher, maxDimLens, dim):
         """Randomly sample the space and return a free sample (with distance info).
          The sample is not inside of any other sphere. Also, this method will not automatically 
          add the new sample to self.mDistSamples list.
@@ -152,9 +154,9 @@ class SampleManager:
 
             if newSamp:
                 # randomly shoot rays to get the nearest distance to obstacles
-                rayShooter = RayShooter( rnd, self.mCollisionMgr, self.mCSpace );
-                dist = rayShooter.randShoot(50 * (dim-1));
-                if math.fabs(dist) >= 1.0:
+                #rayShooter = RayShooter( rnd, self.mCollisionMgr, self.mCSpace );
+                dist, neighbor = surfSearcher.getNearest( rnd ); # Get the distance to obstacles
+                if math.fabs(dist) >= 10.0:
                     newDistSamp = DistSample( rnd, dist );
                     #print "failed times: {0}".format( failTime );
                     failTime=0;
@@ -162,16 +164,16 @@ class SampleManager:
                 else:
                     failTime += 1;
                     print "failed times: {0}".format( failTime );
-            #print "failed times: {0}".format( failTime );
-
+        
+        print "failed times: {0}".format( failTime );
         return None;
            
 
     def randDistSampleUsingObstSurf( self, num ):
         maxDimLens = self.mCSpace.mMaxDimLens;
-        self.randomSample( 800, len(maxDimLens), maxDimLens );
+        self.randomSample( 1000, len(maxDimLens), maxDimLens );
         searcher = ObstSurfSearcher(self.mCollisionMgr, self.mCSpace);
-        searcher.searchObstSurfConfigs( self.mFreeSamples, self.mObstSamples, 3 );
+        searcher.searchObstSurfConfigs( self.mFreeSamples, self.mObstSamples, 1 );
 
         self.mDistSamples = [];
         boundaryQueue = [];
@@ -187,7 +189,7 @@ class SampleManager:
         maxDimLens = self.mCSpace.mMaxDimLens;
         self.randomSample(  1000, len(maxDimLens), maxDimLens );
         searcher = ObstSurfSearcher(self.mCollisionMgr, self.mCSpace);
-        searcher.searchObstSurfConfigs( self.mFreeSamples, self.mObstSamples, 3 );
+        searcher.searchObstSurfConfigs( self.mFreeSamples, self.mObstSamples, 2);
 
         self.mDistSamples = [];
         boundaryQueue = [];
@@ -195,7 +197,7 @@ class SampleManager:
         randFreeSamp = 1234;
 
         while( randFreeSamp != None ):
-            randFreeSamp = self.getARandomFreeSample( num, maxDimLens, len(maxDimLens) );
+            randFreeSamp = self.getARandomFreeSample( num, searcher, maxDimLens, len(maxDimLens) );
             if( randFreeSamp == None ):
                 return;
             self.mDistSamples.append( randFreeSamp );
@@ -229,7 +231,7 @@ class SampleManager:
                 if newSamp:
                     # get the nearest distance to obstacles
                     dist, neighbor = searcher.getNearest( bnd );              # Get the distance to obstacles
-                    if (dist) >= 4.0:	    					 # if not too close to obstacles
+                    if (dist) >= 10.0:	    					 # if not too close to obstacles
                         newDistSamp = DistSample(bnd, dist)	# construct a new dist sample
                         print "{0}  R: {1}".format( bnd, dist );
                         self.mDistSamples.append( newDistSamp );				# add to our dist sample set
@@ -245,6 +247,7 @@ class SampleManager:
                             boundaryQueue.append( bndConfig );				# put the boundary config to the queue.
                         
                         ###########################=========================================================
+                        """
                         if len(self.mDistSamples)%30 == 0:
                             print "------------ FRESH -------------"
                             idx = 0;
@@ -258,72 +261,13 @@ class SampleManager:
                                         except:
                                             pass;
                                 idx += 1;
+                        """
 
                         #    for sphere in self.mDistSamples:
                         #        boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]
                         ###########################=========================================================
 
                         print "\t\t\t\t\t\t\t\t\t\t{0}\n".format(len(boundaryQueue));
-
-
-
-    def distSampleOneThread( self, num, maxDimLens ):
-        """@param num: failure time to sample a new configuration randomly"""
-
-        self.mDistSamples = [];
-        boundaryQueue = [];
-        bndSphDict = defaultdict();
-
-        randFreeSamp = 1234;
-        while( randFreeSamp != None ):
-            randFreeSamp = self.getARandomFreeSample( num, maxDimLens, len(maxDimLens) );
-            if( randFreeSamp == None ):
-                return;
-            self.mDistSamples.append( randFreeSamp );
-            bounds = randFreeSamp.getBoundaryConfigs( maxDimLens );
-
-            for bndConfig in bounds:
-                #if not bndConfig in bndSphDict:			# put the boundconfig-sphere relation to the dictionary
-                bndSphDict[str(bndConfig)] = randFreeSamp;
-                boundaryQueue.append( bndConfig );				# put the boundary config to the queue.
-
-            while( len( boundaryQueue) != 0 ):
-                bnd = boundaryQueue[0];							# get a new boundary
-                del boundaryQueue[0]
-                newSamp = True;
-                if self.mCollisionMgr.ifCollide( bnd ):
-                    continue;
-                for sample in self.mDistSamples:
-                    if sample.isInside( bnd, maxDimLens ): #####################################################################################================================ Locally Sensetive Hash
-                        # check if within any spheres, not including the sphere that the boundary config belongs to.
-                        newSamp = False;
-                        break;
-
-                if newSamp:
-                    # randomly shoot rays to get the nearest distance to obstacles
-                    rayShooter = RayShooter( bnd, self.mCollisionMgr, self.mCSpace );	# Shot ray
-                    dim = len(maxDimLens);
-                    dist = rayShooter.randShoot(50*(dim-1));					# Get the distance to obstacles
-                    if (dist) >= 40.0:	    					# if not too close to obstacles
-                        newDistSamp = DistSample(bnd, dist)	# construct a new dist sample
-                        print "{0}  R: {1}".format( bnd, dist );
-                        self.mDistSamples.append( newDistSamp );				# add to our dist sample set
-                        bounds = newDistSamp.getBoundaryConfigs(maxDimLens);		# get the boundary configs
-                        if len(self.mDistSamples) == 100:
-                            return;
-                        for bndConfig in bounds:
-                            #if not bndConfig in bndSphDict:				# put the boundconfig-sphere relation to the dictionary
-                            bndSphDict[str(bndConfig)] = newDistSamp;
-                            boundaryQueue.append( bndConfig );				# put the boundary config to the queue.
-                        
-                        ###########################=========================================================
-                        if len(self.mDistSamples)%100 == 0:
-                            print "------------ FRESH -------------"
-                            for sphere in self.mDistSamples:
-                                boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]
-                        ###########################=========================================================
-
-                        print "\t\t\t\t\t\t\t\t\t{0}\n".format(len(boundaryQueue));
                         
 
     def renderDistSample(self, ImgSurface):

@@ -4,6 +4,8 @@ Considering two methods of sampling new spehres:
 
 2: randomly sample spheres. Keep the sphere as long as the center is not inside another sphere and the radius is not less than delta.
 
-We got two results with different methods. Both images shown in the folder have about 750 spheres. As is shown, random sampling method tends to have more discrete area, especially near the obstacles surfaces. 
+Prove: 
+ The first algorithm is better than the second one:
 
-How to prove that?
+ 1. Coverage: the first algorithm covers the most area, yet the second algorithm can cover that much area only in the best case.
+ 2. Connectivity: the first algorithm guaranttes the connectivity between two circles, thus an optimal path can be found. While the second algorithm is possible to lost connection, thus the optimal path is broken.

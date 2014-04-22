@@ -54,7 +54,7 @@ def main():
     sampleWorld.loadWorld("world.txt");
     sampleWorld.renderCSpace( initSampleImage );
     sampleWorld.renderObstacles( initSampleImage );
-    pygame.display.update();
+    #pygame.display.update();
 
     #print sampleWorld.mObstMgr.isPathFree( (1188, 274), (1188, 462) );
     #return;
@@ -73,7 +73,7 @@ def main():
     """
 
     print "\nBegin to sample spheres at :{0}".format(datetime.datetime.now());
-    sampleMgr.distSampleUsingObstSurfSamps( 30 );
+    sampleMgr.distSampleUsingObstSurfSamps( 2000 );
     #sampleMgr.sampleWithMoreInfo(20);
     #sampleMgr.sampleWithDistInfo_multiThread( 10 )
     #sampleMgr.distSampleOneThread( 200 );
