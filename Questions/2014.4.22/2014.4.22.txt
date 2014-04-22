@@ -1,0 +1,9 @@
+Considering two methods of sampling new spehres:
+
+1: sample spheres along the boundary of existing spheres. Keep the sphere as long as the center is not inside another sphere and the radius is not less than delta.
+
+2: randomly sample spheres. Keep the sphere as long as the center is not inside another sphere and the radius is not less than delta.
+
+We got two results with different methods. Both images shown in the folder have about 750 spheres. As is shown, random sampling method tends to have more discrete area, especially near the obstacles surfaces. 
+
+How to prove that?

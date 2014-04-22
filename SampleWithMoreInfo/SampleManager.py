@@ -31,23 +31,23 @@ class DistSample:
          @param maxDimLens: max length of each dimension
          @param num: the number of boundary configs you need.
          When num = 0, automatically get boundary configs."""
-        
+
         if self.mBoundaries is not None:
             return self.mBoundaries;
 
-        bndRadius = self.epsRadius();
+        bndRadius = self.mRadius;
         if( bndRadius ) < 2:
             return [];
 
         self.mBoundaries = []
         if( num == 0 ):
-            num = bndRadius + 5;
+            num = bndRadius/1 + 5;
 
         dlt_ang = (2*math.pi) / float(num); # increment of angle;
         for i in range(1, int(num)+1):
             ang = dlt_ang * i;
-            newX = self.mSample[0]+(bndRadius+1.0)*math.cos( ang );
-            newY = self.mSample[1]+(bndRadius+1.0)*math.sin( ang );
+            newX = self.mSample[0]+(bndRadius+0.5)*math.cos( ang );
+            newY = self.mSample[1]+(bndRadius+0.5)*math.sin( ang );
             self.mBoundaries.append((newX, newY));
         return self.mBoundaries;
     
@@ -108,7 +108,15 @@ class SampleManager:
                 self.mFreeSamples.append( rnd );
                 size += 1;
 
+    def getCSpaceBoundaryPoints(self):
+        for i in range( 3, int(1366/5.0) ):
+            self.mFreeSamples.append( (i, 3 ) );
+        for i in range( 3, int(765/3) ):
+            self.mObstSamples.append( ( 3, i ) );
+
     def randomSample( self, num, dim, maxDimLens ):
+        self.getCSpaceBoundaryPoints();
+
         for i in range( 0, num ):
             rnd = [0] * dim;
             for i in range( 0, dim ):
@@ -137,7 +145,7 @@ class SampleManager:
 
             grid = self.mSpacePartition.getContainingGrid( rnd );
             for sphere in grid.mContainer:
-                if sphere.isInsideEpsBall( rnd, maxDimLens ):
+                if sphere.isInside( rnd, maxDimLens ):
                     newSamp = False;
                     failTime += 1
                     break;
@@ -148,19 +156,36 @@ class SampleManager:
                 dist = rayShooter.randShoot(50 * (dim-1));
                 if math.fabs(dist) >= 1.0:
                     newDistSamp = DistSample( rnd, dist );
-                    print "failed times: {0}".format( failTime );
+                    #print "failed times: {0}".format( failTime );
                     failTime=0;
                     return newDistSamp;
                 else:
                     failTime += 1;
+                    print "failed times: {0}".format( failTime );
+            #print "failed times: {0}".format( failTime );
 
         return None;
            
 
+    def randDistSampleUsingObstSurf( self, num ):
+        maxDimLens = self.mCSpace.mMaxDimLens;
+        self.randomSample( 800, len(maxDimLens), maxDimLens );
+        searcher = ObstSurfSearcher(self.mCollisionMgr, self.mCSpace);
+        searcher.searchObstSurfConfigs( self.mFreeSamples, self.mObstSamples, 3 );
+
+        self.mDistSamples = [];
+        boundaryQueue = [];
+        bndSphDict = defaultdict();
+        randFreeSamp = 1234;
+
+        while( True ):
+            pass;
+
+
     def distSampleUsingObstSurfSamps( self, num ):
         """@param num: failure time to sample a new configuration randomly"""
         maxDimLens = self.mCSpace.mMaxDimLens;
-        self.randomSample( 300, len(maxDimLens), maxDimLens );
+        self.randomSample(  1000, len(maxDimLens), maxDimLens );
         searcher = ObstSurfSearcher(self.mCollisionMgr, self.mCSpace);
         searcher.searchObstSurfConfigs( self.mFreeSamples, self.mObstSamples, 3 );
 
@@ -174,7 +199,11 @@ class SampleManager:
             if( randFreeSamp == None ):
                 return;
             self.mDistSamples.append( randFreeSamp );
+            self.mSpacePartition.addSphere( randFreeSamp );
             bounds = randFreeSamp.getBoundaryConfigs( maxDimLens );
+
+            if( len(self.mDistSamples)%100 == 0 ):
+                print "Dist samples: {0}".format( len(self.mDistSamples) );
 
             for bndConfig in bounds:
                 #if not bndConfig in bndSphDict:			# put the boundconfig-sphere relation to the dictionary
@@ -193,14 +222,14 @@ class SampleManager:
 
                 grid = self.mSpacePartition.getContainingGrid( bnd );
                 for sphere in grid.mContainer:
-                    if sphere.isInsideEpsBall( bnd, maxDimLens ):
+                    if sphere.isInside( bnd, maxDimLens ):
                         newSamp = False;
                         break;
 
                 if newSamp:
                     # get the nearest distance to obstacles
                     dist, neighbor = searcher.getNearest( bnd );              # Get the distance to obstacles
-                    if (dist) >= 30.0:	    					 # if not too close to obstacles
+                    if (dist) >= 4.0:	    					 # if not too close to obstacles
                         newDistSamp = DistSample(bnd, dist)	# construct a new dist sample
                         print "{0}  R: {1}".format( bnd, dist );
                         self.mDistSamples.append( newDistSamp );				# add to our dist sample set
@@ -222,7 +251,7 @@ class SampleManager:
                             for bnd in boundaryQueue:
                                 grid = self.mSpacePartition.getContainingGrid( bnd );
                                 for sphere in grid.mContainer:
-                                    if sphere.isInsideEpsBall( bnd, maxDimLens ):
+                                    if sphere.isInside( bnd, maxDimLens ):
                                         try:
                                             del boundaryQueue[idx];
                                             idx -= 1;
@@ -291,7 +320,7 @@ class SampleManager:
                         if len(self.mDistSamples)%100 == 0:
                             print "------------ FRESH -------------"
                             for sphere in self.mDistSamples:
-                                boundaryQueue = [x for x in boundaryQueue if( not sphere.isInsideEpsBall(x, maxDimLens)) ]
+                                boundaryQueue = [x for x in boundaryQueue if( not sphere.isInside(x, maxDimLens)) ]
                         ###########################=========================================================
 
                         print "\t\t\t\t\t\t\t\t\t{0}\n".format(len(boundaryQueue));
@@ -300,15 +329,15 @@ class SampleManager:
     def renderDistSample(self, ImgSurface):
         """Render distance sample to image"""
         print "render {0} dist samples to the image".format( len(self.mDistSamples) );
-        freeColor = ( 0, 0, 250 );
+        freeColor = ( 0, 220, 0 );
         obstColor = ( 200, 0, 100 );
         for samp in self.mDistSamples:
-            #if samp.mRadius > 0: # Free sample
-            #    pygame.draw.circle( ImgSurface, freeColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
-            #else:
-            #    pygame.draw.circle( ImgSurface, obstColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
-            if(samp.mRadius/5.0 >= 4):
-                pygame.draw.circle( ImgSurface, ( 0, 200, 0 ), (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.epsRadius())) );
+            if samp.mRadius > 0: # Free sample
+                pygame.draw.circle( ImgSurface, freeColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)));
+            else:
+                pygame.draw.circle( ImgSurface, obstColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
+            #if(samp.mRadius/5.0 >= 4):
+            #    pygame.draw.circle( ImgSurface, ( 0, 200, 0 ), (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.epsRadius())) );
 
 
     def writeSamplesToFile( self, filename ):

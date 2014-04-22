@@ -73,12 +73,12 @@ def main():
     """
 
     print "\nBegin to sample spheres at :{0}".format(datetime.datetime.now());
-    #sampleMgr.distSampleUsingObstSurfSamps( 20 );
+    sampleMgr.distSampleUsingObstSurfSamps( 30 );
     #sampleMgr.sampleWithMoreInfo(20);
     #sampleMgr.sampleWithDistInfo_multiThread( 10 )
     #sampleMgr.distSampleOneThread( 200 );
-    #sampleMgr.writeSamplesToFile( "distSample.txt" );
-    sampleMgr.loadDistSamplesFromFile( "distSample.txt" );
+    sampleMgr.writeSamplesToFile( "distSample.txt" );
+    #sampleMgr.loadDistSamplesFromFile( "distSample.txt" );
     sampleMgr.renderDistSample( initSampleImage );
 
 
