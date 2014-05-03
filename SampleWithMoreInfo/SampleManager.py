@@ -32,24 +32,26 @@ class DistSample:
          @param num: the number of boundary configs you need.
          When num = 0, automatically get boundary configs."""
 
-        return [];
+        #return [];
 
         if self.mBoundaries is not None:
             return self.mBoundaries;
 
-        bndRadius = self.mRadius;
-        if( bndRadius ) < 2:
+        bndRadius = self.mRadius*1.212;
+        if( self.mRadius ) < 5:
             return [];
 
         self.mBoundaries = []
         if( num == 0 ):
-            num = bndRadius + 5;
+            num = bndRadius*3;
+        if num < 20:
+            num = 20;
 
         dlt_ang = (2*math.pi) / float(num); # increment of angle;
         for i in range(1, int(num)+1):
             ang = dlt_ang * i;
-            newX = self.mSample[0]+(bndRadius+0.5)*math.cos( ang );
-            newY = self.mSample[1]+(bndRadius+0.5)*math.sin( ang );
+            newX = self.mSample[0]+(bndRadius)*math.cos( ang );
+            newY = self.mSample[1]+(bndRadius)*math.sin( ang );
             self.mBoundaries.append((newX, newY));
         return self.mBoundaries;
     
@@ -94,6 +96,7 @@ class SampleManager:
         self.mDistSamples = [];
         self.mFreeSamples = [];
         self.mObstSamples = [];
+        self.mDelta = 5.0;
         self.g_failTimes = Value( 'i', 0 );
         unitLens = [136.6, 76.8];
         self.mSpacePartition = SpacePartition( self.mCSpace.mMaxDimLens, unitLens );
@@ -156,7 +159,7 @@ class SampleManager:
                 # randomly shoot rays to get the nearest distance to obstacles
                 #rayShooter = RayShooter( rnd, self.mCollisionMgr, self.mCSpace );
                 dist, neighbor = surfSearcher.getNearest( rnd ); # Get the distance to obstacles
-                if math.fabs(dist) >= 10.0:
+                if math.fabs(dist) >= self.mDelta:
                     newDistSamp = DistSample( rnd, dist );
                     #print "failed times: {0}".format( failTime );
                     failTime=0;
@@ -231,7 +234,7 @@ class SampleManager:
                 if newSamp:
                     # get the nearest distance to obstacles
                     dist, neighbor = searcher.getNearest( bnd );              # Get the distance to obstacles
-                    if (dist) >= 10.0:	    					 # if not too close to obstacles
+                    if (dist) >= self.mDelta:	    					 # if not too close to obstacles
                         newDistSamp = DistSample(bnd, dist)	# construct a new dist sample
                         print "{0}  R: {1}".format( bnd, dist );
                         self.mDistSamples.append( newDistSamp );				# add to our dist sample set
@@ -277,7 +280,7 @@ class SampleManager:
         obstColor = ( 200, 0, 100 );
         for samp in self.mDistSamples:
             if samp.mRadius > 0: # Free sample
-                pygame.draw.circle( ImgSurface, freeColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)));
+                pygame.draw.circle( ImgSurface, freeColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 0);
             else:
                 pygame.draw.circle( ImgSurface, obstColor, (int(samp.mSample[0]), int(samp.mSample[1])), int(math.fabs(samp.mRadius)), 1 );
             #if(samp.mRadius/5.0 >= 4):
