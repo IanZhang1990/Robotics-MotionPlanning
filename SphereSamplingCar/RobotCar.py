@@ -15,9 +15,16 @@ class Sphere:
         """Render the sphere"""
         pygame.draw.circle( imgsurface, color, self.mPos, self.mRadius );
 
+    def isInside(self, point):
+        distSqr = (point[0]-self.mPos[0])**2 + (point[1]-self.mPos[1])**2;
+        if distSqr < self.mRadius**2:
+            return True;
+        return False;
 
 class RobotCar(object):
     """description of class"""
+
+    minRadius = 30;
 
     def __init__( self, obstacles, x, y, phi ):
         self.mObstacles = obstacles;
@@ -57,6 +64,10 @@ class RobotCar(object):
         self.mIfCollide = False;
 
         for obst in self.mObstacles:
+            if obst.isInside( (self.mX, self.mY) ):
+                return True;
+        """
+        for obst in self.mObstacles:
             # assume each obstacle is sphere
             if utility.sphereLineCollision( obst.mPos, obst.mRadius, topleft, topright ):
                 self.mIfCollide = True;
@@ -70,13 +81,17 @@ class RobotCar(object):
             if utility.sphereLineCollision( obst.mPos, obst.mRadius, topright, buttright ):
                 self.mIfCollide = True;
                 return True;
+        """
 
         return False;
 
     def setParams( self,config ):
         self.mX = config[0];
         self.mY = config[1];
-        self.mPhi = config[2];
+        if len(config) == 3:
+            self.mPhi = config[2];
+        else:
+            self.mPhi = 0;
         return self.ifCollide();
 
     def getConfig(self):
@@ -86,7 +101,7 @@ class RobotCar(object):
         """@param mode: forward | backward | right_forward | left_forward | right_backward | left_backward
          @param time: time of action"""
         omega = 0.02;
-        r = 100;
+        r = self.minRadius;
          
         if mode == "forward":
             speed = 2;

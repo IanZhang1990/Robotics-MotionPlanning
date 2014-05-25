@@ -14,7 +14,9 @@ rect2 = pygame.rect = (100,100,50,50)
 WINDOWWIDTH = 1000
 WINDOWHEIGHT = 1000
 screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), 0, 32)
+screen.fill((255,255,255));
 pygame.display.set_caption('Car Test')
+
 
 
 def main():
@@ -25,10 +27,15 @@ def main():
     cSpaceWorld = CSpaceWorld( robot, originDimLens, maxDimLens );
 
     ######## Now, let's begin to sample spheres in the scaled-CSpace.
+    for obs in obstacles:
+        obs.render( screen, (100,100,100) );
+
     sampleManager = SampleManager( cSpaceWorld );
-    sampleManager.distSampleUsingObstSurfSamps(20, maxDimLens);
-    sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
-    #sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
+    #sampleManager.distSampleUsingObstSurfSamps(20, maxDimLens);
+    #sampleManager.writeSamplesToFile("CSpaceDistSamples.txt");
+    sampleManager.loadDistSamplesFromFile("CSpaceDistSamples.txt");
+    sampleManager.renderDistSamples( screen );
+    pygame.image.save(screen, "workspace.PNG");
     return;
 
 """
